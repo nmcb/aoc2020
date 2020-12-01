@@ -9,7 +9,7 @@ object Day01 {
       .map(_.toInt)
       .toSet
 
-  val tabulated3: Set[Set[Int]] =
+  val distinct3: Set[Set[Int]] =
     for { a <- input ; b <- input ; c <- input ; } yield Set(a, b, c)
 
   val mul: Set[Int] => Int =
@@ -24,15 +24,15 @@ object Day01 {
   def bySumEquals(n: Int): Set[Int] => Boolean =
     sum(_) == n
 
-  def answerByNumberOfArgs(n: Int): Option[Int] =
-    tabulated3
-      .filter(byNumberOfArgs(n))
-      .filter(bySumEquals(2020))
+  def answer(numberOfArgs: Int)(sumEquals: Int): Option[Int] =
+    distinct3
+      .filter(byNumberOfArgs(numberOfArgs))
+      .filter(bySumEquals(sumEquals))
       .map(mul)
       .headOption
     
   def main(args: Array[String]): Unit = {
-    println(s"Answer part 1: ${answerByNumberOfArgs(2)}")
-    println(s"Answer part 2: ${answerByNumberOfArgs(3)}")
+    println(s"Answer part 1: ${answer(2)(2020)}")
+    println(s"Answer part 2: ${answer(3)(2020)}")
   }
 }
