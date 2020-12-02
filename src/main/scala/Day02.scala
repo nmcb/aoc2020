@@ -24,9 +24,9 @@ object Day02 {
     }
     
   def check2: Pred =
-    idx0 => idx1 => char => passwd => {
-      val chars = passwd.zipWithIndex.map((c,i) => (i,c)).toMap
-      chars.get(idx0 - 1) == Some(char) ^ chars.get(idx1 - 1) == Some(char)
+    pos1 => pos2 => char => passwd => {
+      val chars = passwd.zipWithIndex.map(_.swap).toMap
+      chars.get(pos1 - 1) == Some(char) ^ chars.get(pos2 - 1) == Some(char)
     }
     
   def main(args: Array[String]): Unit = {
