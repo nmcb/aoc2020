@@ -11,8 +11,8 @@ object Day02 {
       .fromFile("src/resources/input02.txt")
       .getLines
       .filter {
-        case Line(min,max,char,passwd) =>
-          pred(min.toInt)(max.toInt)(char.head)(passwd) 
+        case Line(int1, int2, char, passwd) =>
+          pred(int1.toInt)(int2.toInt)(char.head)(passwd) 
       }
       .toList
       .size
@@ -20,7 +20,7 @@ object Day02 {
   def check1: Pred =
     min => max => char => passwd => {
       val count = passwd.filter(_ == char).size
-      (count >= min && count <= max)
+      count >= min && count <= max
     }
     
   def check2: Pred =
