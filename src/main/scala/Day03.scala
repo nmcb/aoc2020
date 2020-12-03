@@ -3,26 +3,26 @@ import scala.io._
 object Day03 {
 
   case class Forest(tile: List[List[Char]]) {
-    assert(tile.size >= 1, "tile is empty on the y-axis")
-    assert(tile.map(_.size).distinct.size == 1, "tile is not rectangular")
-    assert(tile.map(_.size).distinct.headOption.filter(_ >= 1).nonEmpty, "tile is empty on the x-axis")
-    assert(tile.flatten.filter(c => c != '.' && c != '#').size == 0, "tile invalid")
+    assert(tile.size >= 1, "empty tile on y-axis")
+    assert(tile.map(_.size).distinct.headOption.filter(_ >= 1).nonEmpty, "empty tile on x-axis")
+    assert(tile.map(_.size).distinct.size == 1, "irregular tile")
+    assert(tile.flatten.filter(c => c != '.' && c != '#').size == 0, "invalid tile")
 
-    val width: Long =
+    val width: Int =
       tile(0).size
 
-    val height: Long =
+    val height: Int =
       tile.size
 
-    def sample(x: Long, y: Long): Option[Char] = {
+    def sample(x: Int, y: Int): Option[Char] = {
       if (y >= height)
         None
       else
-        Some(tile(y.toInt)((x % width).toInt))
+        Some(tile(y)(x % width))
     }
 
-    def walk(dx: Long, dy: Long): Long = {
-      def step(x: Long, y: Long, acc: Long = 0): Long = {
+    def walk(dx: Int, dy: Int): Long = {
+      def step(x: Int, y: Int, acc: Long = 0): Long = {
         sample(x, y) match {
           case None      => acc
           case Some('.') => step(x + dx, y + dy, acc)
