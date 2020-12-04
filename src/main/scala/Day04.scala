@@ -14,41 +14,38 @@ object Day04 {
   val passports: List[Passport] =
     input.foldLeft(List(Passport)) { (acc,line) =>
       line.split(' ') match {
-        case Array("")         =>
+        case Array("") =>
           Passport :: acc
         case fs: Array[String] =>
-          (fs.map(_.split(':')).map(kv => kv(0) -> kv(1)).toMap ++ acc.head) :: acc.tail
+          fs.map(_.split(':')).map(kv => kv(0) -> kv(1)).toMap ++ acc.head :: acc.tail
       }
     }
 
-  val answer1 =
-    passports.filter(p => p.size == 8 || (p.size == 7 && !p.keys.toList.contains("cid")))
-
-  def valRange(key: String, min: Int, max: Int)(p: Passport): Boolean =
+  def valYear(key: String, min: Int, max: Int)(p: Passport): Boolean =
     p.get(key) match {
-      case Some(str) if (str.toInt >= min && str.toInt <= max) => true
-      case _ => false
+      case Some(str) =>
+        str.toInt >= min && str.toInt <= max
+      case _ =>
+        false
     }
     
   def valHgt(p: Passport): Boolean =
     p.get("hgt") match {
-      case Some(ht) if ht.endsWith("cm") =>
-        val h = ht.takeWhile(_ != 'c').toInt
-        h >= 150 && h <= 193
-      case Some(ht) if ht.endsWith("in") =>
-        val h = ht.takeWhile(_ != 'i').toInt
-        h >= 59 && h <= 76
+      case Some(ht) =>
+        val h = ht.takeWhile(_.isDigit).toInt
+        if      (ht.endsWith("cm"))  h >= 150 && h <= 193
+        else if (ht.endsWith("in"))  h >=  59 && h <=  76
+        else                         false
       case _ =>
         false
     }
 
-
   def valHcl(p: Passport): Boolean = {
     val chars = "0123456789abcdef"
     p.get("hcl") match {
-      case Some(hc) =>
-        hc.startsWith("#") && hc.drop(1).filter(chars.contains(_)).size == 6
-      case None =>
+      case Some(hc) if hc.startsWith("#") =>
+        hc.drop(1).filter(chars.contains).size == 6
+      case _ =>
         false
     }
   }
@@ -58,7 +55,7 @@ object Day04 {
     p.get("ecl") match {
       case Some(col) =>
         colors.contains(col)
-      case None      =>
+      case None =>
         false
     }
   }
@@ -67,17 +64,20 @@ object Day04 {
     val digits = "0123456789"
     p.get("pid") match {
       case Some(id) =>
-        id.filter(digits.contains(_)).size == 9
+        id.filter(digits.contains).size == 9
       case _ =>
         false
     }
   }
 
+  val answer1 =
+    passports.filter(p => p.size == 8 || (p.size == 7 && !p.keys.toList.contains("cid")))
+
   val answer2 = 
     answer1
-      .filter(valRange("byr", 1920, 2020))     
-      .filter(valRange("iyr", 2010, 2020))
-      .filter(valRange("eyr", 2020, 2030))
+      .filter(valYear("byr", 1920, 2020))     
+      .filter(valYear("iyr", 2010, 2020))
+      .filter(valYear("eyr", 2020, 2030))
       .filter(valHgt)
       .filter(valHcl)
       .filter(valEcl)
