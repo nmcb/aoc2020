@@ -2,100 +2,82 @@ import scala.io._
 
 object Day04 {
 
+  type Passport = Map[String,String]
+  val  Passport = Map.empty[String,String]
+
   val input =
       Source
         .fromFile("src/resources/input04.txt")
         .getLines
         .toList
 
-  def read(inp: List[String], acc: List[Map[String,String]] = List(Map.empty)): List[Map[String,String]] = {
-    if (inp.isEmpty) {
-      acc
+  val passports: List[Passport] =
+    input.foldLeft(List(Passport)) { (acc,line) =>
+      line.split(' ') match {
+        case Array("")         =>
+          Passport :: acc
+        case fs: Array[String] =>
+          (fs.map(_.split(':')).map(kv => kv(0) -> kv(1)).toMap ++ acc.head) :: acc.tail
+      }
     }
-    else if (inp.head.trim.isEmpty) {
-      read(inp.tail, Map.empty :: acc)
-    }
-    else {
-      val line: Map[String,String] =
-        inp.head.split(' ').filterNot(_.isEmpty).map(s => {
-          println(s)
-          val Array(k,v) = s.trim.split(':')
-          k -> v
-          }).toMap
-  
-      read(inp.tail, (acc.head ++ line) :: acc.tail)
-    }
-  }
 
   val answer1 =
-    read(input).filter(p => p.size == 8 || (p.size == 7 && !p.keys.toList.contains("cid")))
+    passports.filter(p => p.size == 8 || (p.size == 7 && !p.keys.toList.contains("cid")))
 
-  def valByr(p: Map[String,String]): Boolean =
-    p.get("byr") match {
-      case Some(yr) if (yr.toInt >= 1920 && yr.toInt <= 2002) => true
-      case _ => false
-    }
-
-  def valIyr(p: Map[String,String]): Boolean =
-    p.get("iyr") match {
-      case Some(yr) if (yr.toInt >= 2010 && yr.toInt <= 2020) => true
-      case _ => false
-    }
-  
-  def valEyr(p: Map[String,String]): Boolean =
-    p.get("eyr") match {
-      case Some(yr) if (yr.toInt >= 2020 && yr.toInt <= 2030) => true
+  def valRange(key: String, min: Int, max: Int)(p: Passport): Boolean =
+    p.get(key) match {
+      case Some(str) if (str.toInt >= min && str.toInt <= max) => true
       case _ => false
     }
     
-  def valHgt(p: Map[String,String]): Boolean =
+  def valHgt(p: Passport): Boolean =
     p.get("hgt") match {
-      case Some(ht) => {
-        if (ht.endsWith("cm")) {
-          val h = ht.takeWhile(_ != 'c').toInt
-          (h >= 150 && h <= 193)
-        }
-        else if (ht.endsWith("in")) {
-          val h = ht.takeWhile(_ != 'i').toInt
-          (h >= 59 && h <= 76)
-        }
-        else
-          false 
-      }
-      case _ => false
+      case Some(ht) if ht.endsWith("cm") =>
+        val h = ht.takeWhile(_ != 'c').toInt
+        h >= 150 && h <= 193
+      case Some(ht) if ht.endsWith("in") =>
+        val h = ht.takeWhile(_ != 'i').toInt
+        h >= 59 && h <= 76
+      case _ =>
+        false
     }
 
-  val c = "0123456789abcdef"
 
-  def valHcl(p: Map[String,String]): Boolean =
+  def valHcl(p: Passport): Boolean = {
+    val chars = "0123456789abcdef"
     p.get("hcl") match {
-      case Some(hc) if (hc.startsWith("#") && hc.drop(1).filter(c.contains(_)).size == 6) => true
-      case _ => false
+      case Some(hc) =>
+        hc.startsWith("#") && hc.drop(1).filter(chars.contains(_)).size == 6
+      case None =>
+        false
     }
+  }
           
-  def valEcl(p: Map[String,String]): Boolean =
+  def valEcl(p: Passport): Boolean = {
+    val colors = List("amb", "blu", "brn", "gry", "grn", "hzl", "oth")
     p.get("ecl") match {
-      case Some("amb") => true
-      case Some("blu") => true
-      case Some("brn") => true
-      case Some("gry") => true
-      case Some("grn") => true
-      case Some("hzl") => true
-      case Some("oth") => true
-      case _ => false
+      case Some(col) =>
+        colors.contains(col)
+      case None      =>
+        false
     }
+  }
           
-  def valPid(p: Map[String,String]): Boolean =
+  def valPid(p: Passport): Boolean = {
+    val digits = "0123456789"
     p.get("pid") match {
-      case Some(id) if (id.filter("0123456789".contains(_)).size == 9) => true
-      case _ => false
+      case Some(id) =>
+        id.filter(digits.contains(_)).size == 9
+      case _ =>
+        false
     }
+  }
 
   val answer2 = 
     answer1
-      .filter(valByr)     
-      .filter(valIyr)
-      .filter(valEyr)
+      .filter(valRange("byr", 1920, 2020))     
+      .filter(valRange("iyr", 2010, 2020))
+      .filter(valRange("eyr", 2020, 2030))
       .filter(valHgt)
       .filter(valHcl)
       .filter(valEcl)
