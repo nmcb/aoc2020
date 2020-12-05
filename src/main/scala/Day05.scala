@@ -25,13 +25,13 @@ object Day05 {
     input.sorted.reverse.headOption
 
   val answer2: Option[Int] = {
-    input.foldLeft(Option.empty[Int])((a,id) => (a, id) match {
-      case (None, test) =>
-        if (!input.contains(test + 1) && input.contains(test + 2))
-          Some(test + 1)
+    input.foldLeft(Option.empty[Int])((a,id) => a match {
+      case None =>
+        if (!input.contains(id + 1) && input.contains(id + 2))
+          Some(id + 1)
         else
           None
-      case (solution, _) =>
+      case solution =>
         solution
     })
   }
