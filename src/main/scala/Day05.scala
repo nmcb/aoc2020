@@ -2,12 +2,6 @@ import scala.io._
 
 object Day05 {
 
-  val input =
-      Source
-        .fromFile("src/resources/input05.txt")
-        .getLines
-        .toList
-
   def seatId(s: String): Int = {
     import Integer._
     val row = parseInt(s.substring(0,7).replaceAll("F","0").replaceAll("B","1"), 2)
@@ -20,14 +14,20 @@ object Day05 {
   assert(seatId("FFFBBBFRRR") == 119)
   assert(seatId("BBFFBBFRLL") == 820)
 
-  val answer1 =
-    input.map(seatId).sorted.reverse
+  val input: Seq[Int] =
+    Source
+      .fromFile("src/resources/input05.txt")
+      .getLines
+      .map(s => seatId(s))
+      .toSeq
 
-  val answer2 = {
-    val ids = input.map(s => seatId(s) -> s).toMap
-    input.foldLeft(Option.empty[Int])((a,s) => (a, seatId(s)) match {
+  val answer1: Option[Int] =
+    input.sorted.reverse.headOption
+
+  val answer2: Option[Int] = {
+    input.foldLeft(Option.empty[Int])((a,id) => (a, id) match {
       case (None, test) =>
-        if (!ids.keySet.contains(test + 1) && ids.keySet.contains(test + 2))
+        if (!input.contains(test + 1) && input.contains(test + 2))
           Some(test + 1)
         else
           None
@@ -38,7 +38,7 @@ object Day05 {
 
   def main(args: Array[String]): Unit = {
 
-    println(s"Answer part 1: ${answer1.headOption}")
+    println(s"Answer part 1: ${answer1}")
     println(s"Answer part 2: ${answer2}")
   }
 }
