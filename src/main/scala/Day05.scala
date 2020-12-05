@@ -18,11 +18,11 @@ object Day05 {
     Source
       .fromFile("src/resources/input05.txt")
       .getLines
-      .map(s => seatId(s))
+      .map(seatId)
       .toSeq
 
   val answer1: Option[Int] =
-    input.sorted.reverse.headOption
+    input.sorted.lastOption
 
   val answer2: Option[Int] = {
     input.foldLeft(Option.empty[Int])((a,id) => a match {
