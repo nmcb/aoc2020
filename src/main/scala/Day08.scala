@@ -13,86 +13,87 @@ object Day08 extends App {
 
   case class Inst(code: String, arg: Int)
 
-  def program(file: String): List[Inst] =
-    Source
-      .fromFile(file)
-      .getLines
-      .map(parseInst)
-      .toList
+  case class Prog(instructions: List[Inst]) {
 
-  case class Reg(pc: Int, acc: Int) {
+    def instruction(pc: Int): Inst =
+      instructions(pc)
+
+    override def toString: String =
+      s"""${instructions
+              .map(i => s"""${i.code} ${if (i.arg >= 0) "+" + i.arg else i.arg}""")
+              .mkString("\n")}"""
+  }
+
+  def load(file: String): Prog =
+    Prog(Source.fromFile(file).getLines.map(parseInst).toList)
+
+  case class State(pc: Int, acc: Int) {
     val line: Int = pc + 1
   }
-  object Reg {
-    def empty: Reg =
-      Reg(0,0)
+  object State {
+    def empty: State =
+      State(0,0)
   }
 
-  case class VM( prg: List[Inst]
-               , reg: Reg            = Reg.empty
+  case class VM( program: Prog
+               , state: State        = State.empty
                , visited: Set[Int]   = Set.empty
                , halted: Boolean     = false
                , terminated: Boolean = false
                ) {
 
-    final val run: Boolean => VM = 
-      debug => if (debug && visited.contains(reg.pc))
+    def run(debug: Boolean = false): VM = 
+      if (debug && visited.contains(state.pc))
         copy(halted = true)
       else
-        prg
-          .lift(reg.pc)
-          .map(inst => copy(reg = step(inst), visited = visited + reg.pc).run(debug))
+        program
+          .instructions
+          .lift(state.pc)
+          .map(inst => copy(state = exec(inst), visited = visited + state.pc).run(debug))
           .getOrElse(copy(terminated = true))
 
-    val step: Inst => Reg =
-      inst => inst.code match {
-        case "nop" => reg.copy(pc = reg.pc + 1)
-        case "acc" => reg.copy(pc = reg.pc + 1, acc = reg.acc + inst.arg)
-        case "jmp" => reg.copy(pc = reg.pc + inst.arg)
+    private def exec(inst: Inst): State =
+      inst.code match {
+        case "nop" => state.copy(pc = state.pc + 1)
+        case "acc" => state.copy(pc = state.pc + 1, acc = state.acc + inst.arg)
+        case "jmp" => state.copy(pc = state.pc + inst.arg)
       }
   }
 
-  val answer1: VM =
-    VM(program("src/resources/input08.txt")).run(true)
+  val answer1: VM = VM(load("src/resources/input08.txt")).run(debug = true)
   
-  println(s"Answer part 1: ${answer1.reg.acc}")
-
-  println(s"Debug: pc=${answer1.reg.pc}, line=${answer1.reg.line} inst=${answer1.prg(answer1.reg.pc)}")
+  val state = answer1.state
+  val prog  = answer1.program
+  val trace = answer1.visited
+  println(s"Answer part 1: ${state.acc}")
+  println(s"Debug: pc=${state.pc}, line=${state.line} inst=${prog.instruction(state.pc)}")
   
-  val visited =
-    answer1
-      .visited
-      .filter(pc => answer1.prg(pc).code == "nop" || answer1.prg(pc).code == "jmp")
-
+  val visited = trace.filter(pc => prog.instruction(pc).code == "nop" || prog.instruction(pc).code == "jmp")
   println(s"Debug: nops & jmps visited=${visited}")
 
-  def hotfix(pc: Int): List[Inst] = {
-    val prog = program(s"src/resources/input08.txt")
-    prog(pc) match {
-      case Inst("nop", arg) =>  prog.updated(pc, Inst("jmp", arg))
-      case Inst("jmp", arg) =>  prog.updated(pc, Inst("nop", arg))
+  def hotfix(pc: Int): Prog = {
+    val program = load(s"src/resources/input08.txt")
+    program.instruction(pc) match {
+      case Inst("nop", arg) => Prog(program.instructions.updated(pc, Inst("jmp", arg)))
+      case Inst("jmp", arg) => Prog(program.instructions.updated(pc, Inst("nop", arg)))
     }
   }    
 
-  val possibleFixesOnLine: Map[Int,List[Inst]] =
-    visited.foldLeft(Map.empty[Int,List[Inst]])((prgs,pc) => prgs + (pc + 1 -> hotfix(pc)))
+  val possibleFixesByLine: Map[Int,Prog] =
+    visited.foldLeft(Map.empty[Int,Prog])((programs,pc) => programs + (pc + 1 -> hotfix(pc)))
 
   val fixedFile: Option[String] =
-    possibleFixesOnLine.foldLeft(Option.empty[String]) {
+    possibleFixesByLine.foldLeft(Option.empty[String]) {
       case (None, (line, attempt)) =>
-        VM(attempt).run(true) match {
+        VM(attempt).run(debug = true) match {
           case VM(_, _, _, true , false) =>
             println(s"attempt fixing line $line loops infinitely, continuing ...")
             None
-          case VM(_, _, _, false, true)  =>
+          case VM(fix, _, _, false, true)  =>
             println(s"attempt fixing line $line terminated!")
             println(s"hotfixing ... ")
-            val fix =
-              s"""${attempt
-                      .map(i => s"""${i.code} ${if (i.arg >= 0) "+" + i.arg else i.arg}""")
-                      .mkString("\n")}"""
             val file = "src/resources/input08hotfixed.txt"
-            Files.write(Paths.get(file), fix.getBytes(StandardCharsets.UTF_8))
+            Files.write(Paths.get(file), fix.toString.getBytes(StandardCharsets.UTF_8))
             println(s"fix available at $file")
             Some(file)
           case _                            =>
@@ -106,8 +107,8 @@ object Day08 extends App {
     case None =>
       println("no hotfix available; giving up!")
     case Some(file) =>
-      println("hotfix available running ...")
-      val answer2: VM = VM(program(file)).run(false)
-      println(s"Answer part 2: ${answer2.reg.acc}")
+      println("hotfix available; running ...")
+      val answer2: VM = VM(load(file)).run(debug = false)
+      println(s"Answer part 2: ${answer2.state.acc}")
   }  
 }
