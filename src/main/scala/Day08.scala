@@ -79,7 +79,7 @@ object Day08 extends App {
       case (None, (line, attempt)) =>
         VM(attempt).run(debug = true) match {
           case VM(_, _, _, _, true , false) =>
-            println(s"attemt fixing line $line loops infinitely, continuing ...")
+            println(s"attempt fixing line $line loops infinitely, continuing ...")
             None
           case VM(_, _, _, _, false, true)  =>
             println(s"attempt terminated! line $line was in error")
@@ -104,7 +104,7 @@ object Day08 extends App {
       println("no hotfix available; giving up!")
     case Some(file) =>
       println("hotfix available running ...")
-      val answer2: VM = VM(program("src/resources/input08hotfixed.txt")).run(debug = false)
+      val answer2: VM = VM(program(file)).run(debug = false)
       println(s"Answer part 2: ${answer2.acc}")
   }  
 }
