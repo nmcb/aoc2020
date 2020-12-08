@@ -11,7 +11,7 @@ object Day08 extends App {
   def parseInst(line: String): Inst =
     line match { case Line(code, arg) => Inst(code.trim, arg.toInt) }
 
-  case class Inst(code: String, arg: Int, didRun: Boolean = false)
+  case class Inst(code: String, arg: Int)
 
   def program(file: String): List[Inst] =
     Source
@@ -66,8 +66,8 @@ object Day08 extends App {
   def hotfix(pc: Int): List[Inst] = {
     val prog = program(s"src/resources/input08.txt")
     prog(pc) match {
-      case Inst("nop", arg, didRun) =>  prog.updated(pc, Inst("jmp", arg, didRun))
-      case Inst("jmp", arg, didRun) =>  prog.updated(pc, Inst("nop", arg, didRun))
+      case Inst("nop", arg) =>  prog.updated(pc, Inst("jmp", arg))
+      case Inst("jmp", arg) =>  prog.updated(pc, Inst("nop", arg))
     }
   }    
 
@@ -82,7 +82,7 @@ object Day08 extends App {
             println(s"attempt fixing line $line loops infinitely, continuing ...")
             None
           case VM(_, _, _, _, false, true)  =>
-            println(s"attempt terminated! line $line was in error")
+            println(s"attempt fixing line $line terminated!")
             println(s"hotfixing ... ")
             val fix =
               s"""${attempt
