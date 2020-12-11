@@ -21,7 +21,7 @@ object Day08 extends App {
     override def toString: String =
       s"""${instructions
               .map(i => s"""${i.code} ${if (i.arg >= 0) "+" + i.arg else i.arg}""")
-              .mkString("\n")}"""
+              .mkString("","\n","\n")}"""
   }
 
   def load(file: String): Prog =
