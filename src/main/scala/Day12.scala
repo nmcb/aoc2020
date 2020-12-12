@@ -26,7 +26,7 @@ object Day12 extends App {
         case ('E','L') => reface('N', c, by - 90)
         case ('S','L') => reface('E', c, by - 90)
         case ('W','L') => reface('S', c, by - 90)
-        case _         => sys.error(s"two faced ${(f,c)}")
+        case _         => sys.error(s"two faced=${(f,c)}")
       }
 
 
@@ -44,7 +44,7 @@ object Day12 extends App {
                             case 'W' => copy(x = x - a.by)
                             case _   => sys.error(s"flat on it's face=$face")
                           }
-        case _   => sys.error("code contains a coding error")
+        case _   => sys.error(s"code contains a error='${a.code}'")
       }
     }
 
@@ -59,8 +59,6 @@ object Day12 extends App {
         .fromFile("src/resources/input12.txt")
         .getLines
         .map(Action.fromString)
-        .toList
-        .map(a => {println(a);a})
         .foldLeft(Ship())((s,a) => s.perform(a))
         .distance
 
@@ -72,7 +70,7 @@ object Day12 extends App {
       if (by == 0) then copy(x = x0, y = y0) else c match {
         case 'R' => rotate(c, by - 90, y0, 0 - x0)
         case 'L' => rotate(c, by - 90, 0 - y0, x0)
-        case _   => sys.error("code contains a coding error")
+        case _   => sys.error(s"code contains a coding error='$c'")
       }
 
     def perform(a: Action): WayPoint =
@@ -94,7 +92,7 @@ object Day12 extends App {
         case 'F' =>
           copy(x = (wp.x * a.by) + x, y = (wp.y * a.by) + y)
         case _   =>
-          sys.error("code contains a coding error")
+          sys.error(s"code contains a coding error='${a.code}'")
       }
     }
 
@@ -109,8 +107,6 @@ object Day12 extends App {
         .fromFile("src/resources/input12.txt")
         .getLines
         .map(Action.fromString)
-        .toList
-        .map(a => {println(a);a})
         .foldLeft(WayPointedShip())((s,a) => s.perform(a))
         .distance
 
