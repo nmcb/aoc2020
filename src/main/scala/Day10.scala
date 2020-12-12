@@ -55,6 +55,6 @@ object Day10 extends App {
     if (rs(i) - rs(j) > 3) break else ps += i -> (ps.getOrElse(i, 0L) + ps.getOrElse(j, 0L))
   }}}
 
-  // # of rating configurations is # paths to previous to last rating
+  // # of rating configurations is # paths to last rating
   println(s"Answer part 2: ${ps(rs.length - 1)} [${System.currentTimeMillis - start2}ms]")
 }
