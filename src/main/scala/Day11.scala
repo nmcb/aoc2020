@@ -11,7 +11,6 @@ object Day11 extends App {
       if (ix < 0 || ix >= floor.head.length || iy < 0 || iy >= floor.length) None
       else Some(floor(iy)(ix)).filter(c => c == 'L' || c == '#')
 
-
     def count1(ix: Int, iy: Int): Int = {
       val N  = seat(ix    , iy - 1).count(_ == '#')
       val E  = seat(ix + 1, iy    ).count(_ == '#')
@@ -103,7 +102,6 @@ object Day11 extends App {
 
   val answer1: Int = {
     def loop(f: Floor): Floor = {
-      println(f)
       val n = f.next1
       if (n == f) f else loop(n)
     }
@@ -116,13 +114,11 @@ object Day11 extends App {
 
   val answer2: Int = {
     def loop(f: Floor): Floor = {
-      println(f)
       val n = f.next2
       if (n == f) f else loop(n)
     }
     loop(floor).totalOccupied
   }
-
 
   println(s"Answer part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
 }

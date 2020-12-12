@@ -41,22 +41,20 @@ object Day10 extends App {
 
   println(s"Answer part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
 
+  
   val start2 = System.currentTimeMillis
 
-  val input   = Source.fromFile("src/resources/input10.txt").getLines.map(_.toInt).toList.sorted
-  val ratings = (0 :: input) :+ (input.max + 3)
-  val paths   = mutable.Map(0 -> 1L)
+  val as = Source.fromFile("src/resources/input10.txt").getLines.map(_.toInt).toList.sorted
+  val rs = (0 :: as) :+ (as.max + 3) // [0] :: as :: [max(as) + 3]
+  val ps = mutable.Map(0 -> 1L)      // V is # of paths from rating [0] to rating K
   
-  for(i <- 1 until ratings.size) {
-    breakable {
-      for(j <- (0 to i).reverse) {
-        if (ratings(i) - ratings(j) > 3)
-          break
-        else
-          paths += i -> (paths.getOrElse(i, 0L) + paths.getOrElse(j, 0L))
-      }
-    }
-  }
+  for(i <- 1 until rs.length) {              // loop rating i from rs(1) to rs(rs.length-1)
+    breakable { for(j <- (0 to i).reverse) { // loop rating j from rs(i) back to rs(0)
 
-  println(s"Answer part 2: ${paths(ratings.size - 1)} [${System.currentTimeMillis - start2}ms]")
+    // if diff ratings > 3 then break j else upsert # paths of rating i adding # paths of j
+    if (rs(i) - rs(j) > 3) break else ps += i -> (ps.getOrElse(i, 0L) + ps.getOrElse(j, 0L))
+  }}}
+
+  // # of rating configurations is # paths to previous to last rating
+  println(s"Answer part 2: ${ps(rs.length - 1)} [${System.currentTimeMillis - start2}ms]")
 }
