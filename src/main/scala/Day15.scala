@@ -6,15 +6,12 @@ import scala.collection._
 
 object Day15 extends App {
 
-
-
   val input: List[(Int,(Int,Option[Int]))] =
     "5,1,9,18,13,8,0"
       .split(',')
       .zipWithIndex
       .map((nr,ix) => nr.toInt -> ((ix + 1),None))
       .toList
-
 
   val answer: Int => Int = {
     @tailrec def solve(state: Map[Int,(Int,Option[Int])], turn: Int, last: Int)(limit: Int): Int =
