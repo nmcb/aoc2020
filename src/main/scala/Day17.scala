@@ -78,5 +78,6 @@ object Day17 extends App {
   val p5 = p4.next
   val p6 = p5.next
 
+  // part 2 was hacked by just adding the w-dimension, the solution was fast enough...
   println(s"Answer part 2: ${p6.space.size} [${System.currentTimeMillis - start1}ms]")
 }
