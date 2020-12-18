@@ -6,14 +6,14 @@ case class P[A](parse: String => Option[(A,String)]) {
     
   def flatMap[B](f: A => P[B]): P[B] =
     P(s => parse(s) match {
-      case Some((a,r)) => f(a).parse(r)
-      case None        => None
+      case Some(a,r) => f(a).parse(r)
+      case None      => None
     })
 
   def map[B](f: A => B): P[B] =
     P(s => parse(s) match {
-      case Some((a,r)) => Some(f(a), r)
-      case None        => None
+      case Some(a,r) => Some(f(a),r)
+      case None      => None
     })
 
   def |[A1 >: A](that: => P[A1]): P[A1] =
@@ -31,15 +31,23 @@ case class P[A](parse: String => Option[(A,String)]) {
       case Some((a,ss)) => loop(ss, a :: acc)
     }  
 
+  def zeroOrMore: P[List[A]] =
+    P(s => Some(loop(s)))
+
   def oneOrMore: P[List[A]] = {
     P(s => parse(s).flatMap((a,ss) => Some(loop(ss, List(a)))))
   }
 
-  def zeroOrMore: P[List[A]] =
-    P(s => Some(loop(s)))
+  def chainl1[B >: A](opp: P[B => A => A]): P[B] = {
+    def rest(lhs: B): P[B] = {
+      val result = for {
+        op  <- opp
+        rhs <- this
+        res <- rest(op(lhs)(rhs))
+      } yield res
 
-  def chainl1[A1 >: A](binop: P[A1 => A => A]): P[A1] = {
-    def rest(lhs: A1): P[A1] = (for { op <- binop ; rhs <- this ; r <- rest(op(lhs)(rhs)) } yield r) | unit(lhs)
+      result | unit(lhs)
+    }
     for { a <- this ; r <- rest(a) } yield r
   }
 }
