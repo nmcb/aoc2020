@@ -29,24 +29,24 @@ object Day18 extends App {
   def infix(op: String)(f: Op): P[Op] = 
     P.reserved(op) |~| P.unit(f)
 
-  // value     := digit { digit }        -> Val
-  // leaf1     := '('' expr1 ')' | value
-  // operation := '*' expr1 | '+' expr1  -> Mul | Add
-  // expr1     := leaf { operation1 }
+  // expr1  := term2 -> { lassoc }      => Mul | Add
+  // lassoc := '*' expr1 | '+' expr1
+  // term1  := '('' expr1 ')' | value
+  // value  := digit { digit }          => Val
+
+  def expr1: P[Expr] =
+    term1.chainl1(lassoc)
+
+  def lassoc: P[Op] =
+    infix("*")(l => r => Mul(l, r)) |!| infix("+")(l => r => Add(l, r))
+
+  def term1: P[Expr] =
+    (for { _ <- P.reserved("(") ; a <- expr1 ; _ <- P.reserved(")") } yield a) |!| value
 
   def value: P[Expr] =
     for { r <- P.digit.oneOrMore } yield Val(r.mkString.toLong)
-
-  def leaf1: P[Expr] =
-    (for { _ <- P.reserved("(") ; a <- expr1 ; _ <- P.reserved(")") } yield a) |!| value
-
-  def operation1: P[Op] =
-    infix("*")(l => r => Mul(l, r)) |!| infix("+")(l => r => Add(l, r))
-
-  def expr1: P[Expr] =
-    leaf1.chainl1(operation1)
-
-  def parse1(line: String): Expr =
+  
+  def parse1(line: String): Expr = 
     P.run(expr1)(line)
 
 
@@ -54,12 +54,11 @@ object Day18 extends App {
   println(s"Answer part 1: ${input.map(parse1).map(interpret).sum} [${System.currentTimeMillis - start1}ms]")
 
 
-  // value   := digit { digit }       -> Val
-  // parens2 := '('' expr2 ')'
-  // leaf2   := parens2 | value
-  // term    := leaf2 { '+' leaf2 }   -> Add
-  // expr    := term { '*' term }     -> Mul
-
+  // expr2   := term2 -> { '*' term2 }   => Mul
+  // term2   := leaf2 -> { '+' leaf2 }   => Add
+  // leaf2   := '('' expr2 ')' | value
+  // value   := digit { digit }          => Val
+  
   def leaf2: P[Expr] =
     (for { _ <- P.reserved("(") ; a <- expr2 ; _ <- P.reserved(")") } yield a) |!| value
 
@@ -69,11 +68,11 @@ object Day18 extends App {
   def addop: P[Op] =
     infix("+")(l => r => Add(l, r))
 
-  def term: P[Expr] =
+  def term2: P[Expr] =
     leaf2.chainl1(addop)
 
   def expr2: P[Expr] =
-    term.chainl1(mulop)
+    term2.chainl1(mulop)
 
   def parse2(line: String): Expr =
     P.run(expr2)(line)
