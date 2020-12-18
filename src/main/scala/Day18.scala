@@ -58,22 +58,22 @@ object Day18 extends App {
   // term2   := leaf2 -> { '+' leaf2 }   => Add
   // leaf2   := '('' expr2 ')' | value
   // value   := digit { digit }          => Val
-  
-  def leaf2: P[Expr] =
-    (for { _ <- P.reserved("(") ; a <- expr2 ; _ <- P.reserved(")") } yield a) |!| value
-
-  def mulop: P[Op] =
-    infix("*")(l => r => Mul(l, r))
-  
-  def addop: P[Op] =
-    infix("+")(l => r => Add(l, r))
-
-  def term2: P[Expr] =
-    leaf2.chainl1(addop)
 
   def expr2: P[Expr] =
     term2.chainl1(mulop)
 
+  def mulop: P[Op] =
+    infix("*")(l => r => Mul(l, r))
+  
+  def term2: P[Expr] =
+    leaf2.chainl1(addop)
+  
+  def addop: P[Op] =
+    infix("+")(l => r => Add(l, r))
+
+  def leaf2: P[Expr] =
+    (for { _ <- P.reserved("(") ; a <- expr2 ; _ <- P.reserved(")") } yield a) |!| value
+  
   def parse2(line: String): Expr =
     P.run(expr2)(line)
 
