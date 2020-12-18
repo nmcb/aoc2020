@@ -23,11 +23,12 @@ object Day18 extends App {
     }
 
   import parsing._
+  import P._
 
-  type Op = Expr => Expr => Expr
+  type BinOp = Expr => Expr => Expr
 
-  def infix(op: String)(f: Op): P[Op] = 
-    P.reserved(op) ~ P.unit(f)
+  def infix(op: String)(f: BinOp): P[BinOp] = 
+    keyword(op) ~ unit(f)
 
   // expr1  := term2 -> { lassoc }      => Mul | Add
   // lassoc := '*' expr1 | '+' expr1
@@ -37,14 +38,14 @@ object Day18 extends App {
   def expr1: P[Expr] =
     term1.chainl1(lassoc)
 
-  def lassoc: P[Op] =
+  def lassoc: P[BinOp] =
     infix("*")(l => r => Mul(l, r)) | infix("+")(l => r => Add(l, r))
 
   def term1: P[Expr] =
-    (for { _ <- P.reserved("(") ; a <- expr1 ; _ <- P.reserved(")") } yield a) | value
+    (for { _ <- keyword("(") ; a <- expr1 ; _ <- keyword(")") } yield a) | value
 
   def value: P[Expr] =
-    for { r <- P.digit.oneOrMore } yield Val(r.mkString.toLong)
+    for { r <- digit.oneOrMore } yield Val(r.mkString.toLong)
   
   def parse1(line: String): Expr = 
     P.run(expr1)(line)
@@ -62,20 +63,20 @@ object Day18 extends App {
   def expr2: P[Expr] =
     term2.chainl1(mulop)
 
-  def mulop: P[Op] =
+  def mulop: P[BinOp] =
     infix("*")(l => r => Mul(l, r))
   
   def term2: P[Expr] =
     leaf2.chainl1(addop)
   
-  def addop: P[Op] =
+  def addop: P[BinOp] =
     infix("+")(l => r => Add(l, r))
 
   def leaf2: P[Expr] =
-    (for { _ <- P.reserved("(") ; a <- expr2 ; _ <- P.reserved(")") } yield a) | value
+    (for { _ <- keyword("(") ; a <- expr2 ; _ <- keyword(")") } yield a) | value
   
   def parse2(line: String): Expr =
-    P.run(expr2)(line)
+    run(expr2)(line)
 
   val start2  = System.currentTimeMillis
   println(s"Answer part 2: ${input.map(parse2).map(interpret).sum} [${System.currentTimeMillis - start2}ms]")

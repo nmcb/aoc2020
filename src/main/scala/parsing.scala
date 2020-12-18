@@ -1,6 +1,8 @@
 package parsing
 
 case class P[A](parse: String => Option[(A,String)]) {
+
+  import P._
     
   def flatMap[B](f: A => P[B]): P[B] =
     P(s => parse(s) match {
@@ -36,8 +38,8 @@ case class P[A](parse: String => Option[(A,String)]) {
   def zeroOrMore: P[List[A]] =
     P(s => Some(loop(s)))
 
-  def chainl1[A1 >: A](pf: P[A1 => A1 => A1]): P[A1] = {
-    def rest(a: A1): P[A1] = (for { f <- pf ; b <- this ; r <- rest(f(a)(b)) } yield r) | P.unit(a)
+  def chainl1[A1 >: A](binop: P[A1 => A => A]): P[A1] = {
+    def rest(lhs: A1): P[A1] = (for { op <- binop ; rhs <- this ; r <- rest(op(lhs)(rhs)) } yield r) | unit(lhs)
     for { a <- this ; r <- rest(a) } yield r
   }
 }
@@ -81,6 +83,6 @@ object P {
   def token[A](p: P[A]): P[A] =
     for { a <- p ; _ <- spaces } yield a
 
-  def reserved(keyword: String): P[String] =
-    token(string(keyword))    
+  def keyword(word: String): P[String] =
+    token(string(word))    
 }
