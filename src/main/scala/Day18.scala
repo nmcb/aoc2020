@@ -25,27 +25,27 @@ object Day18 extends App {
   import parsing._
   import P._
 
+  def braced(expr: => P[Expr]): P[Expr] =
+    for { _ <- keyword("(") ; value <- expr ; _ <- keyword(")") } yield value
+
   type BinOp = Expr => Expr => Expr
 
   def infix(op: String)(f: BinOp): P[BinOp] = 
     keyword(op) ~ unit(f)
 
-  // expr1  := term2 -> { lassoc }      => Mul | Add
-  // lassoc := '*' expr1 | '+' expr1
-  // term1  := '('' expr1 ')' | value
-  // value  := digit { digit }          => Val
+
+  // expr1  := lhs@( '(' expr1 ')' | value ) -> { lassoc }   
+  // lassoc := '*' rhs@expr1 | '+' rhs@expr1                => Mul(lhs,rhs) | Add(lhs,rhs)
+  // value  := digit -> { digit }                           => Val(value)
 
   def expr1: P[Expr] =
-    term1.chainl1(lassoc)
+    (braced(expr1) | value).chainl1(lassoc)
 
   def lassoc: P[BinOp] =
-    infix("*")(l => r => Mul(l, r)) | infix("+")(l => r => Add(l, r))
-
-  def term1: P[Expr] =
-    (for { _ <- keyword("(") ; a <- expr1 ; _ <- keyword(")") } yield a) | value
+    infix("*")(lhs => rhs => Mul(lhs, rhs)) | infix("+")(lhs => rhs => Add(lhs, rhs))
 
   def value: P[Expr] =
-    for { r <- digit.oneOrMore } yield Val(r.mkString.toLong)
+    for { v <- digit.oneOrMore } yield Val(v.mkString.toLong)
   
   def parse1(line: String): Expr = 
     P.run(expr1)(line)
@@ -55,28 +55,19 @@ object Day18 extends App {
   println(s"Answer part 1: ${input.map(parse1).map(interpret).sum} [${System.currentTimeMillis - start1}ms]")
 
 
-  // expr2   := term2 -> { '*' term2 }   => Mul
-  // term2   := leaf2 -> { '+' leaf2 }   => Add
-  // leaf2   := '('' expr2 ')' | value
-  // value   := digit { digit }          => Val
+  // expr2   := lhs@term2 -> { '*' rhs@term2 }                       => Mul(lhs,rhs)
+  // term2   := lhs@( '(' expr2 ')' | value ) -> { '+' rhs@expr2 }   => Add(lhs,rhs)
+  // value   := digit -> { digit }                                   => Val(value)
 
   def expr2: P[Expr] =
-    term2.chainl1(mulop)
+    term2.chainl1(infix("*")(lhs => rhs => Mul(lhs,rhs)))
 
-  def mulop: P[BinOp] =
-    infix("*")(l => r => Mul(l, r))
-  
   def term2: P[Expr] =
-    leaf2.chainl1(addop)
-  
-  def addop: P[BinOp] =
-    infix("+")(l => r => Add(l, r))
-
-  def leaf2: P[Expr] =
-    (for { _ <- keyword("(") ; a <- expr2 ; _ <- keyword(")") } yield a) | value
+    (braced(expr2)| value).chainl1(infix("+")(lhs => rhs => Add(lhs,rhs)))
   
   def parse2(line: String): Expr =
     run(expr2)(line)
+
 
   val start2  = System.currentTimeMillis
   println(s"Answer part 2: ${input.map(parse2).map(interpret).sum} [${System.currentTimeMillis - start2}ms]")
