@@ -3,22 +3,21 @@ import scala.collection._
 
 object Day17 extends App {
 
-  type Cube  = (Int,Int,Int,Int)
-  type Space = List[Cube]
+  type Space = Map[Int,Map[Int,Map[Int,Set[Int]]]]
 
   case class Pocket(space: Space) {
 
-    def maxX: Int = space.map(_._1).max
-    def minX: Int = space.map(_._1).min
-    def maxY: Int = space.map(_._2).max
-    def minY: Int = space.map(_._2).min
-    def maxZ: Int = space.map(_._3).max
-    def minZ: Int = space.map(_._3).min
-    def maxW: Int = space.map(_._4).max
-    def minW: Int = space.map(_._4).min
+    def maxX: Int = space.keys.max
+    def minX: Int = space.keys.min
+    def maxY: Int = space(0).keys.max
+    def minY: Int = space(0).keys.min
+    def maxZ: Int = space(0)(0).keys.max
+    def minZ: Int = space(0)(0).keys.min
+    def maxW: Int = space(0)(0)(0).max
+    def minW: Int = space(0)(0)(0).min
 
     def active(x: Int, y: Int, z: Int, w: Int): Boolean =
-      space.exists(_ == (x,y,z,w))
+      space(x)(y)(z).contains(w)
 
     def inactive(x: Int, y: Int, z: Int, w: Int): Boolean =
       !active(x,y,z,w)
@@ -35,49 +34,82 @@ object Day17 extends App {
     }
 
     def next: Pocket = {
-      val lb = mutable.ListBuffer.empty[Cube]
+      var xs = Map[Int,Map[Int,Map[Int,Set[Int]]]]()
       for (x <- minX-1 to maxX+1) {
+        var ys = Map[Int,Map[Int,Set[Int]]]()
         for (y <- minY-1 to maxY+1) {
+          var zs = Map[Int,Set[Int]]()
           for (z <- minZ-1 to maxZ+1) {
+            var ws = Set[Int]()
             for (w <- minW-1 to maxW+1) {
               val neighbours = countNeighbours(x,y,z,w)
-              if (inactive(x,y,z,w) && (neighbours == 3))
-                lb += ((x,y,z,w))
-              else if (active(x,y,z,w) && (neighbours == 2 || neighbours == 3))
-                lb += ((x,y,z,w))
+              if (inactive(x,y,z,w) && (neighbours == 3)) {
+                ws = ws ++ Set(w)
+                zs = zs ++ Map(z -> ws)
+                ys = ys ++ Map(y -> zs)
+                xs = xs ++ Map(x -> ys)
+              }
+              else if (active(x,y,z,w) && (neighbours == 2 || neighbours == 3)) {
+                ws = ws ++ Set(w)
+                zs = zs ++ Map(z -> ws)
+                ys = ys ++ Map(y -> zs)
+                xs = xs ++ Map(x -> ys)
+              }
       }}}}
-      val l = lb.toList
-      println(s"l.size=${l.size}")
-      Pocket(lb.toList)
+      Pocket(xs)
     }
+
+    def size: Int =
+      space.foldLeft(0) {
+        case (a1,(_,ys)) =>
+          a1 + ys.foldLeft(0) {
+            case (a2,(_,zs)) =>
+              a2 + ys.foldLeft(0) {
+                case (a3,(_,ws)) =>
+                  a3 + ws.size
+              }
+          }
+      }
   }
 
-  val pocket =
-    Pocket({
+  val pocket = {
+    val input =
       Source
         .fromFile("src/resources/input17.txt")
         .getLines
         .zipWithIndex
-        .flatMap { 
-          case (line,y) => line.zipWithIndex.map {
-            case (c,x) => (x,y,0,0) -> c
-          }
-        }.toList
-        .filter {
-          case (_,c) => c == '#'
+        .foldLeft(Map[Int,Map[Int,Map[Int,Set[Int]]]]()) {
+          case (xs,(ln,x)) =>
+            xs ++ Map(x -> ln.zipWithIndex
+              .foldLeft(Map[Int,Map[Int,Set[Int]]]()) {
+                case (ys,(c,y)) =>
+                  if (c == '#') then {
+                    ys ++ Map(y -> Map(0 -> Set(0)))
+                  } else {
+                    ys
+                  }
+              }
+            )
         }
-        .map(_._1)
-    })
+
+    Pocket(input)
+  }
 
   val start1 = System.currentTimeMillis
 
   val p1 = pocket.next
+  println(s"1 [${System.currentTimeMillis - start1}ms]")
   val p2 = p1.next
+  println(s"2 [${System.currentTimeMillis - start1}ms]")
   val p3 = p2.next
+  println(s"3 [${System.currentTimeMillis - start1}ms]")
   val p4 = p3.next
+  println(s"4 [${System.currentTimeMillis - start1}ms]")
   val p5 = p4.next
+  println(s"5 [${System.currentTimeMillis - start1}ms]")
   val p6 = p5.next
+  println(s"6 [${System.currentTimeMillis - start1}ms]")
 
   // part 2 was hacked by just adding the w-dimension, the solution was fast enough...
-  println(s"Answer part 2: ${p6.space.size} [${System.currentTimeMillis - start1}ms]")
+  println(s"Answer part 2: ${p6.size} [${System.currentTimeMillis - start1}ms]")
 }

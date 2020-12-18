@@ -64,6 +64,10 @@ object Day16 extends App {
     }
   }
 
+  println(nearby.filter(t => !validTickets.contains(t)).mkString("\n","\n",""))
+
+  println(s"VALID=${validTickets.size}, TOTAL=${nearby.size}")
+
   println(s"Answer part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
 
   val start2  = System.currentTimeMillis
