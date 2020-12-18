@@ -27,7 +27,7 @@ object Day18 extends App {
   type Op = Expr => Expr => Expr
 
   def infix(op: String)(f: Op): P[Op] = 
-    P.reserved(op) |~| P.unit(f)
+    P.reserved(op) ~ P.unit(f)
 
   // expr1  := term2 -> { lassoc }      => Mul | Add
   // lassoc := '*' expr1 | '+' expr1
@@ -38,10 +38,10 @@ object Day18 extends App {
     term1.chainl1(lassoc)
 
   def lassoc: P[Op] =
-    infix("*")(l => r => Mul(l, r)) |!| infix("+")(l => r => Add(l, r))
+    infix("*")(l => r => Mul(l, r)) | infix("+")(l => r => Add(l, r))
 
   def term1: P[Expr] =
-    (for { _ <- P.reserved("(") ; a <- expr1 ; _ <- P.reserved(")") } yield a) |!| value
+    (for { _ <- P.reserved("(") ; a <- expr1 ; _ <- P.reserved(")") } yield a) | value
 
   def value: P[Expr] =
     for { r <- P.digit.oneOrMore } yield Val(r.mkString.toLong)
@@ -72,7 +72,7 @@ object Day18 extends App {
     infix("+")(l => r => Add(l, r))
 
   def leaf2: P[Expr] =
-    (for { _ <- P.reserved("(") ; a <- expr2 ; _ <- P.reserved(")") } yield a) |!| value
+    (for { _ <- P.reserved("(") ; a <- expr2 ; _ <- P.reserved(")") } yield a) | value
   
   def parse2(line: String): Expr =
     P.run(expr2)(line)

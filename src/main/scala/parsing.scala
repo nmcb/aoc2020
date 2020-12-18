@@ -2,15 +2,6 @@ package parsing
 
 case class P[A](parse: String => Option[(A,String)]) {
     
-  def identity: P[A] =
-    this
-
-  def unit: P[A] =
-    identity
-
-  def unit[B](b: B): P[B] =
-    P.unit(b)
-
   def flatMap[B](f: A => P[B]): P[B] =
     P(s => parse(s) match {
       case Some((a,r)) => f(a).parse(r)
@@ -23,13 +14,13 @@ case class P[A](parse: String => Option[(A,String)]) {
       case None        => None
     })
 
-  def |!|[A1 >: A](that: => P[A1]): P[A1] =
+  def |[A1 >: A](that: => P[A1]): P[A1] =
     P(s => parse(s) match {
-      case None                      => that.parse(s)
-      case res: Option[(A1, String)] => res
+      case None        => that.parse(s)
+      case res@Some(_) => res
     })
 
-  def |~|[B](that: P[B]): P[B] =
+  def ~[B](that: P[B]): P[B] =
     for { _ <- this ; b <- that } yield b
 
   private def loop(s: String, acc: List[A] = List.empty): (List[A], String) =
@@ -42,13 +33,11 @@ case class P[A](parse: String => Option[(A,String)]) {
     P(s => parse(s).flatMap((a,ss) => Some(loop(ss, List(a)))))
   }
 
-  def zeroOrMore: P[Seq[A]] =
+  def zeroOrMore: P[List[A]] =
     P(s => Some(loop(s)))
 
   def chainl1[A1 >: A](pf: P[A1 => A1 => A1]): P[A1] = {
-    def rest(a: A1): P[A1] =
-      (for { f <- pf ; b <- this ; r <- rest(f(a)(b)) } yield r) |!| unit(a)
-    
+    def rest(a: A1): P[A1] = (for { f <- pf ; b <- this ; r <- rest(f(a)(b)) } yield r) | P.unit(a)
     for { a <- this ; r <- rest(a) } yield r
   }
 }
