@@ -3,6 +3,14 @@ package parsing
 case class P[A](parse: String => Option[(A,String)]) {
 
   import P._
+
+  // def matches(s: String): Boolean =
+  //   parse(s) match {
+  //     case Some(_,"") => true
+  //     case res        =>
+  //       println(res)
+  //       false
+  //   }
     
   def flatMap[B](f: A => P[B]): P[B] =
     P(s => parse(s) match {
@@ -73,9 +81,15 @@ object P {
   def satisfy(p: Char => Boolean): P[Char] =
     take.flatMap(c => if p(c) then unit(c) else fail)
 
+  def end: P[Boolean] =
+    P(s => if (s.nonEmpty) Some(true, s) else Some(false, s))
+
   def digit: P[Char] =
     satisfy(_.isDigit)
-
+  
+  def digits: P[Long] =
+    satisfy(_.isDigit).oneOrMore.map(_.mkString("").toLong)
+    
   def char(c: Char): P[Char] =
     satisfy(_ == c)
 

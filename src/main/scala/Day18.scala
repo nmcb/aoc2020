@@ -73,7 +73,6 @@ object Day18 extends App {
   def parse2(line: String): Expr =
     run(expr2)(line)
 
-
   val start2  = System.currentTimeMillis
-  println(s"Answer part 2: ${input.map(parse2).map(_.eval).sum} [${System.currentTimeMillis - start2}ms]")
+  println(s"Answer part 2: ${input.map(l => (parse2(l), l)).map((e,l) => (e.eval,l)).map((r,l) => {println(s"line=$l\nresult=$r");r}).sum} [${System.currentTimeMillis - start2}ms]")
 }
