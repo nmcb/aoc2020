@@ -12,7 +12,7 @@ object Day22 extends App {
 
     def byPlayer2: Boolean =
       player2.nonEmpty
-  
+
     def deck: Deck =
       player1.getOrElse(player2.getOrElse(sys.error("no win")))
 
@@ -40,7 +40,7 @@ object Day22 extends App {
         , 34, 23, 43, 22,  4
         )
 
-  val input2: Deck = 
+  val input2: Deck =
     Deck( 44, 10, 27,  9, 14, 15, 24, 16,  3, 33
         , 21, 29, 11, 38,  1, 31, 50, 41, 40, 32
         , 42, 35, 37,  2, 12
@@ -62,7 +62,7 @@ object Day22 extends App {
         case (Nil, _) => Win(player2 = Some(bs))
         case _        => sys.error("both empty")
       }
-    }    
+    }
     val result = play(input1, input2)
     result.score
   }
@@ -78,7 +78,7 @@ object Day22 extends App {
 
   p1 = deque(map(int, ls[1:26]))
   p2 = deque(map(int, ls[28:]))
-  
+
   def score(winner):
     return sum(map(prod, enumerate(reversed(winner), 1)))
   */
@@ -118,7 +118,7 @@ object Day22 extends App {
     def play(as: Deck, bs: Deck, seen: Set[(Deck,Deck)] = Set.empty, round: Int = 1): Win = {
       println(s"-- Round $round --")
       println(s"Player 1's deck: $as")
-      println(s"Player 2's deck: $bs") 
+      println(s"Player 2's deck: $bs")
       (as,bs) match {
         case (a +: atail, b +: btail) =>
           val current = (as,bs)
@@ -141,5 +141,4 @@ object Day22 extends App {
   }
 
   println(s"Answer part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
-
 }
