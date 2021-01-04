@@ -79,47 +79,47 @@ object Day19 extends App {
   }
 
   object Rule {
-    
+
     // ref  := lhs@rule -> { ": " rhs@rule }  => Ref(lhs,rhs)
     // rule := or | and | num | lit
     // or   := lhs@and -> { " | " rhs@and }   => Or(lhs,rhs)
     // and  := lhs@num -> { " " rhs@num }     => And(lhs,rhs)
     // num  := digit -> { digit }             => Num(num)
     // lit  := '"' char@take '"'              => Lit(char)
-    
+
     type BinOp = Rule => Rule => Rule
-    
-    def infix(op: String)(f: BinOp): P[BinOp] = 
+
+    def infix(op: String)(f: BinOp): P[BinOp] =
       keyword(op) ~ unit(f)
-      
+
     def ref: P[Rule] =
       rule.chainl1(infix(": ")(lhs => rhs => Ref(lhs,rhs)))
-      
+
     def rule: P[Rule] =
       or | and | num | lit
-        
+
     def or: P[Rule] =
       and.chainl1(infix(" | ")(lhs => rhs => Or(lhs,rhs)))
-          
+
     def and: P[Rule] =
       num.chainl1(infix(" ")(lhs => rhs => And(lhs,rhs)))
-            
-    def num: P[Rule] = 
+
+    def num: P[Rule] =
       digits.map(l => Num(l))
-              
+
     def lit: P[Rule] =
       for {
         _    <- char('"')
         c    <- take
         _    <- char('"')
       } yield Lit(c)
-                
+
     def parse(s: String): Rule =
       run(Rule.ref)(s)
   }
 
   import Rule._
-                      
+
   val input =
     Source
       .fromFile("src/resources/input19example2.txt")
@@ -152,8 +152,8 @@ object Day19 extends App {
   //   })
 
   def seen(rule: Rule, s: List[Long] = List.empty): (Long,List[Long]) = rule match {
-    case Ref(Num(i),r) if s.contains(i) => (i,s) 
-    case Ref(Num(i),r)                  => seen(r,s :+ i) 
+    case Ref(Num(i),r) if s.contains(i) => (i,s)
+    case Ref(Num(i),r)                  => seen(r,s :+ i)
     case Num(v)                         => seen(rules(v), s)
     case And(l,r) =>
       val (res,lc) = seen(l,s)
@@ -162,6 +162,8 @@ object Day19 extends App {
       val (res,lc) = seen(l,s)
       seen(r,lc)
     case Lit(c) => (-1,s)
+    case r: Rule =>
+      sys.error(s"unrecognised rule r=$r")
   }
 
   println(seen(rules(0)))
