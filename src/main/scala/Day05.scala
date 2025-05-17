@@ -4,34 +4,29 @@ object Day05 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
+  type Id = Int
+
   import Integer._
 
-  def seatId(s: String): Int = {
+  def seatId(s: String): Id =
     val row = parseInt(s.substring(0, 7).replaceAll("F","0").replaceAll("B","1"), 2)
     val col = parseInt(s.substring(7,10).replaceAll("L","0").replaceAll("R","1"), 2)
     row * 8 + col
-  }
 
-  assert(seatId("FBFBBFFRLR") == 357)
-  assert(seatId("BFFFBBFRRR") == 567)
-  assert(seatId("FFFBBBFRRR") == 119)
-  assert(seatId("BBFFBBFRLL") == 820)
-
-  val input: Seq[Int] =
+  val seatIds: Set[Id] =
     Source
       .fromResource(s"input$day.txt")
       .getLines
       .map(seatId)
-      .toSeq
+      .toSet
 
-  val answer1: Option[Int] =
-    input.sorted.lastOption
+  val start1  = System.currentTimeMillis
+  val answer1 = seatIds.max
+  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  val answer2: Option[Int] =
-    input.foldLeft(Option.empty[Int]) {
-      case (None, id) if !input.contains(id + 1) && input.contains(id + 2) => Some(id + 1)
-      case (acc, _)                                                        => acc
-    }
+  def missing(seatIds: Set[Id]): Set[Id] =
+    (seatIds.min to seatIds.max).toSet -- seatIds
 
-  println(s"Answer part 1: ${answer1}")
-  println(s"Answer part 2: ${answer2}")
+  val start2  = System.currentTimeMillis
+  val answer2 = missing(seatIds).head
+  println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
