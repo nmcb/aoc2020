@@ -45,6 +45,7 @@ object Day14 extends App {
           case (('X',_),lsb) => "" + 'X' + lsb
           case (('1',_),lsb) => "" + '1' + lsb
           case (('0',b),lsb) => "" +  b  + lsb
+          case ((c, b), lsb) => sys.error(s"invalid c=$c, b=$b, lsb=$lsb")
         }.foldRight(List.empty[String]) {
           case ('X',acc) => if acc.nonEmpty then acc.flatMap(n => List("0" + n, "1" + n)) else List("0", "1")
           case ('1',acc) => if acc.nonEmpty then acc.map(n => "1" + n) else List("1")
