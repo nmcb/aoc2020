@@ -4,21 +4,19 @@ object Day01 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  val input: List[Int] =
+  val input: Vector[Int] =
     Source
       .fromResource(s"input$day.txt")
       .getLines
       .map(_.toInt)
-      .toList
+      .toVector
 
   def answer(numberOfArgs: Int, sumEquals: Int): Int =
     input
       .combinations(numberOfArgs)
       .filter(_.sum == sumEquals)
       .map(_.product)
-      .toList
-      .headOption
-      .getOrElse(sys.error(s"boom!"))
+      .next
 
   val start1: Long = System.currentTimeMillis
   val answer1: Int = answer(numberOfArgs = 2, sumEquals = 2020)
