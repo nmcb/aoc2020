@@ -1,6 +1,8 @@
 import scala.io._
 
-object Day05 {
+object Day05:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   import Integer._
 
@@ -31,8 +33,5 @@ object Day05 {
       case (acc, _)                                                        => acc
     }
 
-  def main(args: Array[String]): Unit = {
-    println(s"Answer part 1: ${answer1}")
-    println(s"Answer part 2: ${answer2}")
-  }
-}
+  println(s"Answer part 1: ${answer1}")
+  println(s"Answer part 2: ${answer2}")

@@ -4,7 +4,9 @@ import scala.util.control.Breaks._
 import scala.util._
 import scala.collection._
 
-object Day16 extends App {
+object Day16 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class Rule(label: String, a0: Int, a1: Int, b0: Int, b1: Int) {
     def valid(i: Int): Boolean =
@@ -95,4 +97,3 @@ object Day16 extends App {
     departureRules.map((_,i) => ticket(i).toLong)
 
   println(s"Answer part 2: ${departureFields.product} [${System.currentTimeMillis - start1}ms]")
-}

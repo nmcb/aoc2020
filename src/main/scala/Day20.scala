@@ -1,7 +1,9 @@
 import scala.io._
 import scala.annotation._
 
-object Day20 extends App {
+object Day20 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   val Header = "Tile\\s(\\d+):".r
 
@@ -226,4 +228,3 @@ object Day20 extends App {
 
     ???
   }
-}

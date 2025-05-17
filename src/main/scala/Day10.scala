@@ -3,7 +3,9 @@ import scala.annotation.tailrec
 import scala.util.control.Breaks._
 import scala.collection._
 
-object Day10 extends App {
+object Day10 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class Adapter(rated: Int) {
     assert(rated > 0, s"non-positive adater of $rated")
@@ -57,4 +59,3 @@ object Day10 extends App {
 
   // # of rating configurations is # paths to last rating
   println(s"Answer part 2: ${ps(rs.length - 1)} [${System.currentTimeMillis - start2}ms]")
-}

@@ -1,6 +1,8 @@
 import scala.io._
 
-object Day07 extends App {
+object Day07 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   val Line = """(\w+)\s(\w+)\sbags\scontain\s(.+).""".r
   val Bags = """(\d+)\s(\w+)\s(\w+)\sbag[s]?""".r
@@ -46,4 +48,3 @@ object Day07 extends App {
   // println(s"Answer part 1: ${parents("shinygold")}")
   println(s"Answer part 1: ${answer1(parents("shinygold")).distinct.size}")
   println(s"Answer part 2: ${answer2(children("shinygold"))}")
-}

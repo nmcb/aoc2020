@@ -1,6 +1,8 @@
 import scala.io._
 
-object Day03 {
+object Day03:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class Forest(tile: List[List[Char]]) {
     assert(tile.size >= 1, "empty tile on y-axis")
@@ -42,18 +44,14 @@ object Day03 {
         .map(_.toList)
         .toList)
 
-  def main(args: Array[String]): Unit = {
+  println(s"Answer part 1: ${forest.walk(3, 1)}")
 
-    println(s"Answer part 1: ${forest.walk(3, 1)}")
+  val walks: List[Long] =
+    List( forest.walk(1, 1)
+        , forest.walk(3, 1)
+        , forest.walk(5, 1)
+        , forest.walk(7, 1)
+        , forest.walk(1, 2)
+        )
 
-    val walks: List[Long] =
-      List( forest.walk(1, 1)
-          , forest.walk(3, 1)
-          , forest.walk(5, 1)
-          , forest.walk(7, 1)
-          , forest.walk(1, 2)
-          )
-
-    println(s"Answer part 2: ${walks.product}")
-  }
-}
+  println(s"Answer part 2: ${walks.product}")

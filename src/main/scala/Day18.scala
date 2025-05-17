@@ -1,7 +1,9 @@
 import scala.io._
 import scala.collection._
 
-object Day18 extends App {
+object Day18 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   val input =
       Source
@@ -75,4 +77,3 @@ object Day18 extends App {
 
   val start2  = System.currentTimeMillis
   println(s"Answer part 2: ${input.map(l => (parse2(l), l)).map((e,l) => (e.eval,l)).map((r,l) => {println(s"line=$l\nresult=$r");r}).sum} [${System.currentTimeMillis - start2}ms]")
-}

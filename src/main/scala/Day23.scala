@@ -1,7 +1,8 @@
 import scala.annotation._
 
-object Day23 extends App {
+object Day23 extends App:
 
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class Round(ring: List[Int], move: Int = 1) {
     val size = 9
@@ -96,4 +97,3 @@ object Day23 extends App {
   }
 
   // 1000000 -> ???
-}

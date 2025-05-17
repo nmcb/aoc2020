@@ -3,7 +3,9 @@ import scala.annotation.tailrec
 import scala.util.control.Breaks._
 import scala.collection._
 
-object Day11 extends App {
+object Day11 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class Floor(floor: List[String]) {
 
@@ -121,4 +123,3 @@ object Day11 extends App {
   }
 
   println(s"Answer part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
-}

@@ -4,7 +4,9 @@ import java.nio.charset.StandardCharsets
 import scala.io._
 import scala.annotation.tailrec
 
-object Day08 extends App {
+object Day08 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   val Line = """^(\w+) ([\+-]\d+)$""".r
 
@@ -111,5 +113,4 @@ object Day08 extends App {
       println("hotfix available; running ...")
       val answer2: VM = VM(load(file)).run(debug = false)
       println(s"Answer part 2: ${answer2.state.acc}")
-  }  
-}
+  }

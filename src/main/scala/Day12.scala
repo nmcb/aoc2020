@@ -3,7 +3,9 @@ import scala.annotation.tailrec
 import scala.util.control.Breaks._
 import scala.collection._
 
-object Day12 extends App {
+object Day12 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class Action(override val toString: String) {
     def code: Char = toString.head
@@ -111,5 +113,3 @@ object Day12 extends App {
         .distance
 
   println(s"Answer part 2: ${answer2} [${System.currentTimeMillis - start1}ms]")
-
-}

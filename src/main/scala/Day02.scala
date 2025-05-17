@@ -1,6 +1,8 @@
 import scala.io._
 
-object Day02 {
+object Day02 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   type Pred = Int => Int => Char => String => Boolean
 
@@ -29,8 +31,5 @@ object Day02 {
       chars.get(pos1 - 1) == Some(char) ^ chars.get(pos2 - 1) == Some(char)
     }
     
-  def main(args: Array[String]): Unit = {
-    println(s"Answer part 1: ${answer(check1)}")
-    println(s"Answer part 2: ${answer(check2)}")
-  }
-}
+  println(s"Answer part 1: ${answer(check1)}")
+  println(s"Answer part 2: ${answer(check2)}")

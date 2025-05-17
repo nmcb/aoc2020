@@ -4,7 +4,9 @@ import scala.util.control.Breaks._
 import scala.util._
 import scala.collection._
 
-object Day14 extends App {
+object Day14 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class UInt36(underlying: Long) {
     assert(underlying.toBinaryString.length <= 36)
@@ -95,4 +97,3 @@ object Day14 extends App {
   val start2  = System.currentTimeMillis
   val answer2 = run(program)(addr => value => mask => mem => mem ++ mask.float(addr).map(a => a -> value))
   println(s"Answer part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
-}

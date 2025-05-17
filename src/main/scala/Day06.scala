@@ -1,7 +1,9 @@
 import scala.io._
 
-object Day06 extends App {
+object Day06 extends App:
 
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
+  
   val input: List[String] =
     Source
       .fromFile("src/resources/input06.txt")
@@ -32,4 +34,4 @@ object Day06 extends App {
 
   println(s"Answer part 1: ${answer1}")
   println(s"Answer part 2: ${answer2}")
-}
+

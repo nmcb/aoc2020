@@ -1,6 +1,8 @@
 import scala.io._
 
-object Day21 extends App {
+object Day21 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   val file = "src/resources/input21.txt"
 
@@ -43,6 +45,3 @@ object Day21 extends App {
 
   val start2 = System.currentTimeMillis
   println(s"Answer part 2: ${partTwo} [${System.currentTimeMillis - start2}ms]")
-
-
-}
