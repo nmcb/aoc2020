@@ -3,7 +3,9 @@ import scala.collection._
 import scala.annotation._
 import scala.util.Try
 
-object Day19 extends App {
+object Day19 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   import parsing._
   import P._
@@ -122,7 +124,7 @@ object Day19 extends App {
 
   val input =
     Source
-      .fromFile("src/resources/input19example2.txt")
+      .fromResource(s"input$day-example2.txt")
       .getLines
       .map(_.trim)
       .toList
@@ -179,4 +181,3 @@ object Day19 extends App {
 
   // val start1 = System.currentTimeMillis
   // println(s"Answer part 1: \n${answer1} [${System.currentTimeMillis - start1}ms]")
-}

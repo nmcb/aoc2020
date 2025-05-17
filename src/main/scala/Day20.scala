@@ -1,13 +1,15 @@
 import scala.io._
 import scala.annotation._
 
-object Day20 extends App {
+object Day20 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   val Header = "Tile\\s(\\d+):".r
 
   val inputs: List[Tile] =
     Source
-      .fromFile("src/resources/input20example1.txt")
+      .fromResource(s"input$day-example1.txt")
       .getLines
       .map(_.trim)
       .filter(_.nonEmpty)
@@ -226,4 +228,3 @@ object Day20 extends App {
 
     ???
   }
-}

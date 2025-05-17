@@ -1,13 +1,13 @@
 import scala.io._
 
-object Day21 extends App {
+object Day21 extends App:
 
-  val file = "src/resources/input21.txt"
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   def partTwo = {
     val x =
       Source
-        .fromFile(file).getLines
+        .fromResource(s"input$day.txt").getLines
         .foldLeft(Map.empty[String, Set[String]]) { case (acc, line) =>
       val split = line.split(" ").toList
       val ingredients = split.takeWhile(_ != "(contains")
@@ -43,6 +43,3 @@ object Day21 extends App {
 
   val start2 = System.currentTimeMillis
   println(s"Answer part 2: ${partTwo} [${System.currentTimeMillis - start2}ms]")
-
-
-}

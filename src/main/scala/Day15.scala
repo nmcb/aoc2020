@@ -4,7 +4,9 @@ import scala.util.control.Breaks._
 import scala.util._
 import scala.collection._
 
-object Day15 extends App {
+object Day15 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   val input: List[(Int,(Int,Option[Int]))] =
     "5,1,9,18,13,8,0"
@@ -39,4 +41,3 @@ object Day15 extends App {
 
   val start2  = System.currentTimeMillis
   println(s"Answer part 2: ${answer(30000000)} [${System.currentTimeMillis - start2}ms]")
-}

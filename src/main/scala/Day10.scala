@@ -3,7 +3,9 @@ import scala.annotation.tailrec
 import scala.util.control.Breaks._
 import scala.collection._
 
-object Day10 extends App {
+object Day10 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class Adapter(rated: Int) {
     assert(rated > 0, s"non-positive adater of $rated")
@@ -19,7 +21,7 @@ object Day10 extends App {
 
   val adapters: List[Int] =
     Source
-      .fromFile("src/resources/input10.txt")
+      .fromResource(s"input$day.txt")
       .getLines
       .map(_.toInt)
       .toList
@@ -44,7 +46,7 @@ object Day10 extends App {
   
   val start2 = System.currentTimeMillis
 
-  val as = Source.fromFile("src/resources/input10.txt").getLines.map(_.toInt).toList.sorted
+  val as = Source.fromResource(s"input$day.txt").getLines.map(_.toInt).toList.sorted
   val rs = (0 :: as) :+ (as.max + 3) // [0] :: as :: [max(as) + 3]
   val ps = mutable.Map(0 -> 1L)      // V is # of paths from rating [0] to rating K
   
@@ -57,4 +59,3 @@ object Day10 extends App {
 
   // # of rating configurations is # paths to last rating
   println(s"Answer part 2: ${ps(rs.length - 1)} [${System.currentTimeMillis - start2}ms]")
-}

@@ -2,11 +2,13 @@ import scala.io._
 import scala.annotation.tailrec
 import scala.util.control.Breaks._
 
-object Day09 extends App {
+object Day09 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   def input: List[Long] =
     Source
-      .fromFile("src/resources/input09.txt")
+      .fromResource(s"input$day.txt")
       .getLines
       .map(_.toLong)
       .toList
@@ -65,6 +67,5 @@ object Day09 extends App {
   }  
 
   println(s"Answer part 2: ${answer2}")
-
   println(s"[${System.currentTimeMillis - start}ms]")
- }
+

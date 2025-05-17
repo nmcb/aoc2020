@@ -1,7 +1,9 @@
 import scala.io._
 import scala.collection._
 
-object Day17 extends App {
+object Day17 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   type Space = Map[Int,Map[Int,Map[Int,Set[Int]]]]
 
@@ -75,7 +77,7 @@ object Day17 extends App {
   val pocket = {
     val input =
       Source
-        .fromFile("src/resources/input17.txt")
+        .fromResource(s"input$day.txt")
         .getLines
         .zipWithIndex
         .foldLeft(Map[Int,Map[Int,Map[Int,Set[Int]]]]()) {
@@ -112,4 +114,3 @@ object Day17 extends App {
 
   // part 2 was hacked by just adding the w-dimension, the solution was fast enough...
   println(s"Answer part 2: ${p6.size} [${System.currentTimeMillis - start1}ms]")
-}

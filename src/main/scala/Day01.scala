@@ -4,7 +4,6 @@ object Day01 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-
   val input: List[Int] =
     Source
       .fromResource(s"input$day.txt")

@@ -4,11 +4,13 @@ import scala.util.control.Breaks._
 import scala.util._
 import scala.collection._
 
-object Day13 extends App {
+object Day13 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   val List(begin, input) =
     Source
-      .fromFile("src/resources/input13.txt")
+      .fromResource(s"input$day.txt")
       .getLines
       .toList
 
@@ -75,8 +77,5 @@ object Day13 extends App {
       .map((b,i) => (Try(b.toLong).getOrElse[Long](1),i))
       .toMap
 
-  val answer2 =
-    congruence(schedule2.keys.toList, schedule2.values.toList).getOrElse(sys.error("boom")) - input.length + 1
-
+  val answer2 = congruence(schedule2.keys.toList, schedule2.values.toList).getOrElse(sys.error("boom")) - input.length + 1
   println(s"Answer part 2: ${answer2} [${System.currentTimeMillis - start1}ms]")
-}

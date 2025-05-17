@@ -3,7 +3,9 @@ import scala.annotation.tailrec
 import scala.util.control.Breaks._
 import scala.collection._
 
-object Day12 extends App {
+object Day12 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class Action(override val toString: String) {
     def code: Char = toString.head
@@ -56,7 +58,7 @@ object Day12 extends App {
 
   val answer1: Int =
       Source
-        .fromFile("src/resources/input12.txt")
+        .fromResource(s"input$day.txt")
         .getLines
         .map(Action.fromString)
         .foldLeft(Ship())((s,a) => s.perform(a))
@@ -104,12 +106,10 @@ object Day12 extends App {
 
   val answer2: Int =
       Source
-        .fromFile("src/resources/input12.txt")
+        .fromResource(s"input$day.txt")
         .getLines
         .map(Action.fromString)
         .foldLeft(WayPointedShip())((s,a) => s.perform(a))
         .distance
 
   println(s"Answer part 2: ${answer2} [${System.currentTimeMillis - start1}ms]")
-
-}

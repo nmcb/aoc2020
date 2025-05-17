@@ -1,6 +1,8 @@
 import scala.annotation.tailrec
 
-object Day22 extends App {
+object Day22 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   type Deck = List[Int]
   val  Deck = List
@@ -141,4 +143,3 @@ object Day22 extends App {
   }
 
   println(s"Answer part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
-}

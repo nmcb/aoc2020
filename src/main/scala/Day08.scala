@@ -4,7 +4,9 @@ import java.nio.charset.StandardCharsets
 import scala.io._
 import scala.annotation.tailrec
 
-object Day08 extends App {
+object Day08 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   val Line = """^(\w+) ([\+-]\d+)$""".r
 
@@ -25,7 +27,7 @@ object Day08 extends App {
   }
 
   def load(file: String): Prog =
-    Prog(Source.fromFile(file).getLines.map(parseInst).toList)
+    Prog(Source.fromResource(file).getLines.map(parseInst).toList)
 
   case class State(pc: Int, acc: Int) {
     val line: Int = pc + 1
@@ -60,7 +62,7 @@ object Day08 extends App {
       }
   }
 
-  val answer1: VM = VM(load("src/resources/input08.txt")).run(debug = true)
+  val answer1: VM = VM(load(s"input$day.txt")).run(debug = true)
   
   val state = answer1.state
   val prog  = answer1.program
@@ -72,7 +74,7 @@ object Day08 extends App {
   println(s"Debug: nops & jmps visited=${visited}")
 
   def hotfix(pc: Int): Prog = {
-    val program = load(s"src/resources/input08.txt")
+    val program = load(s"input$day.txt")
     program.instruction(pc) match {
       case Inst("nop", arg) => Prog(program.instructions.updated(pc, Inst("jmp", arg)))
       case Inst("jmp", arg) => Prog(program.instructions.updated(pc, Inst("nop", arg)))
@@ -88,14 +90,10 @@ object Day08 extends App {
       case (None, (line, attempt)) =>
         VM(attempt).run(debug = true) match {
           case VM(_, _, _, true , false) =>
-            println(s"attempt fixing line $line loops infinitely, continuing ...")
             None
           case VM(fix, _, _, false, true)  =>
-            println(s"attempt fixing line $line terminated!")
-            println(s"hotfixing ... ")
-            val file = "src/resources/input08hotfixed.txt"
+            val file = s"input$day-hotfixed.txt"
             Files.write(Paths.get(file), fix.toString.getBytes(StandardCharsets.UTF_8))
-            println(s"fix available at $file")
             Some(file)
           case _                            =>
             sys.error(s"boom: attempting to fix line $line => $attempt")
@@ -106,10 +104,6 @@ object Day08 extends App {
 
   fixedFile match {
     case None =>
-      println("no hotfix available; giving up!")
     case Some(file) =>
-      println("hotfix available; running ...")
       val answer2: VM = VM(load(file)).run(debug = false)
-      println(s"Answer part 2: ${answer2.state.acc}")
-  }  
-}
+  }

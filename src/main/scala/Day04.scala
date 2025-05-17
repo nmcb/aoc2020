@@ -1,13 +1,15 @@
 import scala.io._
 
-object Day04 {
+object Day04 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   type Passport = Map[String,String]
   val  Passport = Map.empty[String,String]
 
   val input =
       Source
-        .fromFile("src/resources/input04.txt")
+        .fromResource(s"input$day.txt")
         .getLines
         .toList
 
@@ -84,9 +86,5 @@ object Day04 {
       .filter(valPid)
     
           
-  def main(args: Array[String]): Unit = {
-
-    println(s"Answer part 1: ${answer1.size}")
-    println(s"Answer part 2: ${answer2.size}")
-  }
-}
+  println(s"Answer part 1: ${answer1.size}")
+  println(s"Answer part 2: ${answer2.size}")
