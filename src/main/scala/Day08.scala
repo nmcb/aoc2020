@@ -76,6 +76,7 @@ object Day08 extends App {
     program.instruction(pc) match {
       case Inst("nop", arg) => Prog(program.instructions.updated(pc, Inst("jmp", arg)))
       case Inst("jmp", arg) => Prog(program.instructions.updated(pc, Inst("nop", arg)))
+      case Inst(op, arg)    => sys.error(s"invalid op=$op, arg=$arg")
     }
   }    
 
