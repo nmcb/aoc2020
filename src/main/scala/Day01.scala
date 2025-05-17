@@ -1,24 +1,30 @@
 import scala.io._
 
-object Day01 {
+object Day01 extends App:
+
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
+
 
   val input: List[Int] =
     Source
-      .fromFile("src/resources/input01.txt")
+      .fromResource(s"input$day.txt")
       .getLines
       .map(_.toInt)
       .toList
 
-  def answer(numberOfArgs: Int)(sumEquals: Int): Option[Int] =
+  def answer(numberOfArgs: Int, sumEquals: Int): Int =
     input
       .combinations(numberOfArgs)
       .filter(_.sum == sumEquals)
       .map(_.product)
       .toList
       .headOption
-    
-  def main(args: Array[String]): Unit = {
-    println(s"Answer part 1: ${answer(2)(2020)}")
-    println(s"Answer part 2: ${answer(3)(2020)}")
-  }
-}
+      .getOrElse(sys.error(s"boom!"))
+
+  val start1: Long = System.currentTimeMillis
+  val answer1: Int = answer(numberOfArgs = 2, sumEquals = 2020)
+  println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
+
+  val start2: Long = System.currentTimeMillis
+  val answer2: Int = answer(numberOfArgs = 3, sumEquals = 2020)
+  println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
