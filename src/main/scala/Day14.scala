@@ -70,7 +70,7 @@ object Day14 extends App:
 
   val program: Prg =
     Source
-      .fromFile("src/resources/input14.txt")
+      .fromResource(s"input$day.txt")
       .getLines
       .toList
       .map {

@@ -10,7 +10,7 @@ object Day02 extends App:
 
   def answer(pred: Pred): Int =
     Source
-      .fromFile("src/resources/input02.txt")
+      .fromResource(s"input$day.txt")
       .getLines
       .filter {
         case Line(int1, int2, char, passwd) =>

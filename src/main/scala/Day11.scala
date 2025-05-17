@@ -96,9 +96,10 @@ object Day11 extends App:
   val floor: Floor =
     Floor(
       Source
-        .fromFile("src/resources/input11.txt")
+        .fromResource(s"input$day.txt")
         .getLines
-        .toList)
+        .toList
+    )
 
   val start1 = System.currentTimeMillis
 

@@ -8,7 +8,7 @@ object Day09 extends App:
 
   def input: List[Long] =
     Source
-      .fromFile("src/resources/input09.txt")
+      .fromResource(s"input$day.txt")
       .getLines
       .map(_.toLong)
       .toList

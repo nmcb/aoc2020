@@ -58,7 +58,7 @@ object Day12 extends App:
 
   val answer1: Int =
       Source
-        .fromFile("src/resources/input12.txt")
+        .fromResource(s"input$day.txt")
         .getLines
         .map(Action.fromString)
         .foldLeft(Ship())((s,a) => s.perform(a))
@@ -106,7 +106,7 @@ object Day12 extends App:
 
   val answer2: Int =
       Source
-        .fromFile("src/resources/input12.txt")
+        .fromResource(s"input$day.txt")
         .getLines
         .map(Action.fromString)
         .foldLeft(WayPointedShip())((s,a) => s.perform(a))

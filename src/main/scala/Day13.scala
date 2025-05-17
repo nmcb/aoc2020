@@ -10,7 +10,7 @@ object Day13 extends App:
 
   val List(begin, input) =
     Source
-      .fromFile("src/resources/input13.txt")
+      .fromResource(s"input$day.txt")
       .getLines
       .toList
 
@@ -79,4 +79,3 @@ object Day13 extends App:
 
   val answer2 = congruence(schedule2.keys.toList, schedule2.values.toList).getOrElse(sys.error("boom")) - input.length + 1
   println(s"Answer part 2: ${answer2} [${System.currentTimeMillis - start1}ms]")
-  

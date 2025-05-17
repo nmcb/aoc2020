@@ -21,7 +21,7 @@ object Day10 extends App:
 
   val adapters: List[Int] =
     Source
-      .fromFile("src/resources/input10.txt")
+      .fromResource(s"input$day.txt")
       .getLines
       .map(_.toInt)
       .toList
@@ -46,7 +46,7 @@ object Day10 extends App:
   
   val start2 = System.currentTimeMillis
 
-  val as = Source.fromFile("src/resources/input10.txt").getLines.map(_.toInt).toList.sorted
+  val as = Source.fromResource(s"input$day.txt").getLines.map(_.toInt).toList.sorted
   val rs = (0 :: as) :+ (as.max + 3) // [0] :: as :: [max(as) + 3]
   val ps = mutable.Map(0 -> 1L)      // V is # of paths from rating [0] to rating K
   

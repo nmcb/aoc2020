@@ -9,7 +9,7 @@ object Day20 extends App:
 
   val inputs: List[Tile] =
     Source
-      .fromFile("src/resources/input20example1.txt")
+      .fromResource(s"input$day-example1.txt")
       .getLines
       .map(_.trim)
       .filter(_.nonEmpty)

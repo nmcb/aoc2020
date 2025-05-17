@@ -7,7 +7,7 @@ object Day18 extends App:
 
   val input =
       Source
-        .fromFile("src/resources/input18.txt")
+        .fromResource(s"input$day.txt")
         .getLines
         .map(_.filter(_ != ' '))
         .toList

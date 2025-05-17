@@ -1,6 +1,6 @@
 import scala.io._
 
-object Day03:
+object Day03 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
@@ -39,10 +39,11 @@ object Day03:
   val forest: Forest =
     Forest(
       Source
-        .fromFile("src/resources/input03.txt")
+        .fromResource(s"input$day.txt")
         .getLines
         .map(_.toList)
-        .toList)
+        .toList
+    )
 
   println(s"Answer part 1: ${forest.walk(3, 1)}")
 

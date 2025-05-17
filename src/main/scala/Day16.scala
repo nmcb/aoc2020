@@ -17,11 +17,9 @@ object Day16 extends App:
 
   val Rules = "(.+)\\: (\\d+)-(\\d+) or (\\d+)-(\\d+)".r
 
-  val Input = "src/resources/input16.txt"
-
   val rules: List[Rule] =
     Source
-      .fromFile(Input)
+      .fromResource(s"input$day.txt")
       .getLines
       .foldLeft(List.empty[Rule]) {
         case (rs, Rules(l, a0,a1,b0,b1)) =>
@@ -33,21 +31,21 @@ object Day16 extends App:
 
   val ticket: List[Int] =
     Source
-        .fromFile(Input)
-        .getLines
-        .drop(rules.length + 2)
-        .next
-        .split(',')
-        .map(_.toInt)
-        .toList
+      .fromResource(s"input$day.txt")
+      .getLines
+      .drop(rules.length + 2)
+      .next
+      .split(',')
+      .map(_.toInt)
+      .toList
 
   val nearby: List[List[Int]] =
     Source
-        .fromFile(Input)
-        .getLines
-        .drop(rules.length + 5)
-        .toList
-        .map(_.split(',').map(_.toInt).toList)
+      .fromResource(s"input$day.txt")
+      .getLines
+      .drop(rules.length + 5)
+      .toList
+      .map(_.split(',').map(_.toInt).toList)
 
   val start1  = System.currentTimeMillis
 
@@ -65,10 +63,6 @@ object Day16 extends App:
       }
     }
   }
-
-  println(nearby.filter(t => !validTickets.contains(t)).mkString("\n","\n",""))
-
-  println(s"VALID=${validTickets.size}, TOTAL=${nearby.size}")
 
   println(s"Answer part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
 

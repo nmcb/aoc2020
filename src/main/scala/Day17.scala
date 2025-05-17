@@ -77,7 +77,7 @@ object Day17 extends App:
   val pocket = {
     val input =
       Source
-        .fromFile("src/resources/input17.txt")
+        .fromResource(s"input$day.txt")
         .getLines
         .zipWithIndex
         .foldLeft(Map[Int,Map[Int,Map[Int,Set[Int]]]]()) {

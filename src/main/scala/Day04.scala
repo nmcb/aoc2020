@@ -1,6 +1,6 @@
 import scala.io._
 
-object Day04:
+object Day04 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
@@ -9,7 +9,7 @@ object Day04:
 
   val input =
       Source
-        .fromFile("src/resources/input04.txt")
+        .fromResource(s"input$day.txt")
         .getLines
         .toList
 

@@ -4,12 +4,10 @@ object Day21 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  val file = "src/resources/input21.txt"
-
   def partTwo = {
     val x =
       Source
-        .fromFile(file).getLines
+        .fromResource(s"input$day.txt").getLines
         .foldLeft(Map.empty[String, Set[String]]) { case (acc, line) =>
       val split = line.split(" ").toList
       val ingredients = split.takeWhile(_ != "(contains")
