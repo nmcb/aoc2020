@@ -1,5 +1,4 @@
-import scala.io._
-import scala.collection._
+import scala.io.*
 
 object Day18 extends App:
 
@@ -12,28 +11,28 @@ object Day18 extends App:
         .map(_.filter(_ != ' '))
         .toList
 
-  enum Expr {
-    def eval: Long =
-      this match {
-        case Add(lhs,rhs) => lhs.eval + rhs.eval
-        case Mul(lhs,rhs) => lhs.eval * rhs.eval
-        case Val(v)   => v
-      }
+  enum Expr:
     case Add(l: Expr, r: Expr)
     case Mul(l: Expr, r: Expr)
     case Val(v: Long)
-  }
+
+    def eval: Long =
+      this match
+        case Add(lhs, rhs) => lhs.eval + rhs.eval
+        case Mul(lhs, rhs) => lhs.eval * rhs.eval
+        case Val(v) => v
 
   import parsing._
   import P._
   import Expr._
 
   def braced(expr: => P[Expr]): P[Expr] =
-    for {
+    for
       _     <- keyword("(")
       value <- expr
       _     <- keyword(")")
-    } yield value
+    yield
+      value
 
   type BinOp = Expr => Expr => Expr
 
@@ -52,14 +51,15 @@ object Day18 extends App:
     infix("*")(lhs => rhs => Add(lhs, rhs)) | infix("+")(lhs => rhs => Mul(lhs, rhs))
 
   def value: P[Expr] =
-    for { v <- digit.oneOrMore } yield Val(v.mkString.toLong)
+    for v <- digit.oneOrMore yield Val(v.mkString.toLong)
   
   def parse1(line: String): Expr = 
     P.run(expr1)(line)
 
 
-  val start1 = System.currentTimeMillis
-  println(s"Answer part 1: ${input.map(parse1).map(_.eval).sum} [${System.currentTimeMillis - start1}ms]")
+  val start1  = System.currentTimeMillis
+  val answer1 = input.map(parse1).map(_.eval).sum
+  println(s"Answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
 
   // expr2   := lhs@term2 -> { '*' rhs@term2 }                       => Mul(lhs,rhs)
@@ -76,4 +76,5 @@ object Day18 extends App:
     run(expr2)(line)
 
   val start2  = System.currentTimeMillis
-  println(s"Answer part 2: ${input.map(l => (parse2(l), l)).map((e,l) => (e.eval,l)).map((r,l) => {println(s"line=$l\nresult=$r");r}).sum} [${System.currentTimeMillis - start2}ms]")
+  val answer2 = input.map(parse2).map(_.eval).sum
+  println(s"Answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
