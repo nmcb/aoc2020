@@ -6,66 +6,43 @@ object Day09 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  def input: List[Long] =
+  def input: Vector[Long] =
     Source
       .fromResource(s"input$day.txt")
       .getLines
       .map(_.toLong)
-      .toList
+      .toVector
 
-  val (preamable, inbound) = input.splitAt(25)
+  val (preamble, inbound) = input.splitAt(25)
 
-  val answer1: Long = {
-    @tailrec def answer1(todo: List[Long], prem: List[Long] = preamable): Long =
-      todo match {
-        case test :: rest =>
-          val sums = prem.combinations(2).map(_.sum)
-          if (sums.contains(test))
-            answer1(rest, prem.drop(1) :+ test)      
+  def solve1(preamble: Vector[Long], inbound: Vector[Long]): Long =
+    @tailrec def go(todo: Vector[Long], prem: Vector[Long] = preamble): Long =
+      todo match
+        case test +: rest =>
+          if prem.combinations(2).map(_.sum).contains(test) then
+            go(rest, prem.drop(1) :+ test)
           else
-            test  
-        case _ =>
-          sys.error("boom")
-      }
-    answer1(inbound.toList)
-  }
+            test
+        case _            => sys.error("boom")
+    go(inbound)
 
-  println(s"Answer part 1: ${answer1}")
+  val start1 = System.currentTimeMillis
+  val answer1 = solve1(preamble, inbound)
+  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  val start = System.currentTimeMillis
-
-  // val answer2: Long = {
-  //   @tailrec def answer2(todo: Iterator[List[Long]] = inbound.sliding(2), window: Int = 2): Long = 
-  //     if (todo.hasNext) {
-  //       val test = todo.next()
-  //       if (test.sum == answer1)
-  //         test.max + test.min
-  //       else
-  //         answer2(todo, window)
-  //     }
-  //     else {
-  //       val size = window + 1
-  //       answer2(inbound.sliding(size), size)
-  //     }
-  //   answer2()
-  // }
-
-  val answer2: Option[Long] = {
+  def solve2(inbound: Vector[Long], sum: Long): Option[Long] =
     var result: Option[Long] = None
     breakable {
-      for (size <- 2 to inbound.length) {
-        for (test <- inbound.sliding(size)) {
-          if (test.sum == answer1) {
+      for size <- 2 to inbound.length do
+        for test <- inbound.sliding(size) do
+          if test.sum == sum then
             result = Some(test.max + test.min)
             break
-          }
-        }
-        if (result.isDefined) break
-      }
+        if result.isDefined then
+          break
     }
     result
-  }  
 
-  println(s"Answer part 2: ${answer2}")
-  println(s"[${System.currentTimeMillis - start}ms]")
-
+  val start2 = System.currentTimeMillis
+  val answer2: Long = solve2(inbound, answer1).get
+  println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")

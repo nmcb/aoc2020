@@ -1,7 +1,4 @@
-import java.nio.file.{Paths, Files}
-import java.nio.charset.StandardCharsets
-  
-import scala.io._
+import scala.io.*
 
 object Day08 extends App:
 
