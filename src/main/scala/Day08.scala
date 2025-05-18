@@ -2,7 +2,6 @@ import java.nio.file.{Paths, Files}
 import java.nio.charset.StandardCharsets
   
 import scala.io._
-import scala.annotation.tailrec
 
 object Day08 extends App:
 
@@ -10,100 +9,74 @@ object Day08 extends App:
 
   val Line = """^(\w+) ([\+-]\d+)$""".r
 
-  def parseInst(line: String): Inst =
-    line match { case Line(code, arg) => Inst(code.trim, arg.toInt) }
 
-  case class Inst(code: String, arg: Int)
+  case class Instruction(code: String, arg: Int)
 
-  case class Prog(instructions: List[Inst]) {
+  object Instruction:
+    def fromLine(line: String): Instruction =
+      line match
+        case Line(code, arg) => Instruction(code.trim, arg.toInt)
 
-    def instruction(pc: Int): Inst =
-      instructions(pc)
+  type Program = Vector[Instruction]
 
-    override def toString: String =
-      s"""${instructions
-              .map(i => s"""${i.code} ${if (i.arg >= 0) "+" + i.arg else i.arg}""")
-              .mkString("","\n","\n")}"""
-  }
+  enum State(val pc: Int, val accumulator: Int):
+    case Running(override val pc: Int, override val accumulator: Int)    extends State(pc, accumulator)
+    case Halted(override val pc: Int, override val accumulator: Int)     extends State(pc, accumulator)
+    case Terminated(override val pc: Int, override val accumulator: Int) extends State(pc, accumulator)
 
-  def load(file: String): Prog =
-    Prog(Source.fromResource(file).getLines.map(parseInst).toList)
+    def isRunning: Boolean    = this.isInstanceOf[Running]
+    def isHalted: Boolean     = this.isInstanceOf[Halted]
+    def isTerminated: Boolean = this.isInstanceOf[Terminated]
 
-  case class State(pc: Int, acc: Int) {
-    val line: Int = pc + 1
-  }
-  object State {
-    def empty: State =
-      State(0,0)
-  }
+    def setRunning: Running       = Running(pc, accumulator)
+    def setHalted: Halted         = Halted(pc, accumulator)
+    def setTerminated: Terminated = Terminated(pc, accumulator)
 
-  case class VM( program: Prog
-               , state: State        = State.empty
-               , visited: Set[Int]   = Set.empty
-               , halted: Boolean     = false
-               , terminated: Boolean = false
-               ) {
+  import State.*
 
-    def run(debug: Boolean = false): VM = 
-      if (debug && visited.contains(state.pc))
-        copy(halted = true)
+  case class VM(program: Program, state: State = Running(pc = 0, accumulator = 0), trace: Vector[Int] = Vector.empty):
+
+    def run(debug: Boolean): VM =
+      if (debug && trace.contains(state.pc))
+        copy(state = state.setHalted)
       else
         program
-          .instructions
           .lift(state.pc)
-          .map(inst => copy(state = exec(inst), visited = visited + state.pc).run(debug))
-          .getOrElse(copy(terminated = true))
+          .map(instruction => copy(state = exec(instruction), trace = trace :+ state.pc).run(debug))
+          .getOrElse(copy(state = state.setTerminated))
 
-    private def exec(inst: Inst): State =
-      inst.code match {
-        case "nop" => state.copy(pc = state.pc + 1)
-        case "acc" => state.copy(pc = state.pc + 1, acc = state.acc + inst.arg)
-        case "jmp" => state.copy(pc = state.pc + inst.arg)
-      }
-  }
+    private def exec(inst: Instruction): State =
+      inst.code match
+        case "nop" => Running(state.pc + 1, state.accumulator)
+        case "acc" => Running(state.pc + 1, state.accumulator + inst.arg)
+        case "jmp" => Running(state.pc + inst.arg, state.accumulator)
 
-  val answer1: VM = VM(load(s"input$day.txt")).run(debug = true)
-  
-  val state = answer1.state
-  val prog  = answer1.program
-  val trace = answer1.visited
-  println(s"Answer part 1: ${state.acc}")
-  println(s"Debug: pc=${state.pc}, line=${state.line} inst=${prog.instruction(state.pc)}")
-  
-  val visited = trace.filter(pc => prog.instruction(pc).code == "nop" || prog.instruction(pc).code == "jmp")
-  println(s"Debug: nops & jmps visited=${visited}")
+  val program: Program =
+    Source
+      .fromResource(s"input$day.txt")
+      .getLines.map(Instruction.fromLine)
+      .toVector
 
-  def hotfix(pc: Int): Prog = {
-    val program = load(s"input$day.txt")
-    program.instruction(pc) match {
-      case Inst("nop", arg) => Prog(program.instructions.updated(pc, Inst("jmp", arg)))
-      case Inst("jmp", arg) => Prog(program.instructions.updated(pc, Inst("nop", arg)))
-      case Inst(op, arg)    => sys.error(s"invalid op=$op, arg=$arg")
-    }
-  }    
+  val start1  = System.currentTimeMillis
+  val answer1 = VM(program).run(debug = true).state.accumulator
+  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  val possibleFixesByLine: Map[Int,Prog] =
-    visited.foldLeft(Map.empty[Int,Prog])((programs,pc) => programs + (pc + 1 -> hotfix(pc)))
 
-  val fixedFile: Option[String] =
-    possibleFixesByLine.foldLeft(Option.empty[String]) {
-      case (None, (line, attempt)) =>
-        VM(attempt).run(debug = true) match {
-          case VM(_, _, _, true , false) =>
-            None
-          case VM(fix, _, _, false, true)  =>
-            val file = s"input$day-hotfixed.txt"
-            Files.write(Paths.get(file), fix.toString.getBytes(StandardCharsets.UTF_8))
-            Some(file)
-          case _                            =>
-            sys.error(s"boom: attempting to fix line $line => $attempt")
-        }
-      case (file: Some[String], _) =>
-        file
-    }
+  def patch(program: Program): Program =
 
-  fixedFile match {
-    case None =>
-    case Some(file) =>
-      val answer2: VM = VM(load(file)).run(debug = false)
-  }
+    def patchLine(line: Int): Program =
+      program(line) match
+        case Instruction("nop", arg) => program.updated(line, Instruction("jmp", arg))
+        case Instruction("jmp", arg) => program.updated(line, Instruction("nop", arg))
+        case Instruction(op, arg) => sys.error(s"invalid op=$op, arg=$arg")
+
+    VM(program).run(debug = true)
+      .trace
+      .filter(line => program(line).code == "nop" || program(line).code == "jmp")
+      .foldLeft(Set.empty[Program])((patches,line) => patches + patchLine(line))
+      .find(patch => VM(patch).run(debug = true).state.isTerminated)
+      .get
+
+  val start2 = System.currentTimeMillis
+  val answer2 = VM(patch(program)).run(debug = false).state.accumulator
+  println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
