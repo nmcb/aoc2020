@@ -1,93 +1,41 @@
-import scala.io._
-import scala.annotation._
-import scala.util.control.Breaks._
-import scala.util._
-import scala.collection._
+import scala.io.*
 
 object Day16 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  case class Rule(label: String, a0: Int, a1: Int, b0: Int, b1: Int) {
-    def valid(i: Int): Boolean =
-      (i >= a0 && i <= a1) || (i >= b0 && i <= b1)
-    def invalid(i: Int): Boolean =
-      !valid(i)
-  }
+  case class Rule(pattern: String):
 
-  val Rules = "(.+)\\: (\\d+)-(\\d+) or (\\d+)-(\\d+)".r
+    private val (a, b, c, d) = pattern match
+      case s"${name}: $a-$b or $c-$d" => (a.toInt, b.toInt, c.toInt, d.toInt)
 
-  val rules: List[Rule] =
-    Source
-      .fromResource(s"input$day.txt")
-      .getLines
-      .foldLeft(List.empty[Rule]) {
-        case (rs, Rules(l, a0,a1,b0,b1)) =>
-          rs :+ Rule(l, a0.toInt, a1.toInt, b0.toInt, b1.toInt)
-        case (rs, _) => rs
-      }
+    def check(i: Int): Boolean = (a <= i && i <= b) || (c <= i && i <= d)
 
-  val RuleCount = rules.length
+  val (rules: Set[Rule], mine: Seq[Int], nearby: Seq[Seq[Int]]) =
+    val input = Source.fromResource(s"input$day.txt").getLines.toSeq
+    val (rules, rest)  = input.splitAt(input.indexOf(""))
+    val (your, nearby) = (rest(2), rest.drop(5))
+    (rules.map(Rule.apply).toSet, your.split(",").map(_.toInt).toSeq, nearby.map(_.split(",").map(_.toInt).toSeq))
 
-  val ticket: List[Int] =
-    Source
-      .fromResource(s"input$day.txt")
-      .getLines
-      .drop(rules.length + 2)
-      .next
-      .split(',')
-      .map(_.toInt)
-      .toList
-
-  val nearby: List[List[Int]] =
-    Source
-      .fromResource(s"input$day.txt")
-      .getLines
-      .drop(rules.length + 5)
-      .toList
-      .map(_.split(',').map(_.toInt).toList)
+  def solve1(rules: Set[Rule], mine: Seq[Int], nearby: Seq[Seq[Int]]): Long =
+    nearby.flatMap(ticket => ticket.filterNot(field => rules.exists(rule => rule.check(field)))).sum
 
   val start1  = System.currentTimeMillis
+  val answer1 = solve1(rules, mine, nearby)
+  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  def invalid(t: List[Int]): List[Int] =
-    t.foldLeft(List.empty[Int])((a,i) => if (rules.forall(_.invalid(i))) i :: a else a)
+  def solve2(rules: Set[Rule], mine: Seq[Int], nearby: Seq[Seq[Int]]): Long =
+    val valid = nearby.filter(ticket => ticket.forall(field => rules.exists(rule => rule.check(field))))
+    val sets  = valid.transpose.map(fields => rules.filter(rule => fields.forall(field => rule.check(field))))
 
-  val (validTickets, answer1): Tuple2[List[List[Int]],Int] = {
-    nearby.foldLeft((List.empty[List[Int]],0)) {
-      case ((vs,a),t) => {
-        val invalidNrs = invalid(t)
-        if (invalidNrs.nonEmpty)
-          (vs, a * invalidNrs.sum)
-        else
-          (t :: vs, a)
-      }
-    }
-  }
+    def refine(sets: Seq[Set[Rule]]): Seq[Set[Rule]] =
+      val definite = sets.filter(_.size == 1).flatten
+      sets.map(set => if set.size == 1 then set else set -- definite)
 
-  println(s"Answer part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
+    val found = Iterator.iterate(sets)(refine).dropWhile(_.exists(_.size > 1)).next.map(_.head)
+    val departures = found.zip(mine).filter((rule,field) => rule.pattern.startsWith("departure"))
+    departures.map((_,field) => field.toLong).product
 
   val start2  = System.currentTimeMillis
-
-  val rulesByLengthAndLabel: List[(List[Rule],Int)] =
-    (0 until RuleCount).foldLeft(List.empty[List[Rule]])((acc,i) =>
-      acc :+ validTickets.foldLeft(rules)((r,t) =>
-        r.filter(_.valid(t(i)))
-      ).sortBy(_.label)
-    ).zipWithIndex.sortBy(_._1.length)
-
-  @tailrec def purge(todo: List[(List[Rule],Int)], acc: List[(Rule,Int)] = List.empty): List[(Rule,Int)] = todo match {
-    case (rs, ix) :: rss =>
-      val r    = rs.headOption.getOrElse[Rule](sys.error("empty ruleset"))
-      val next = rss.map((rs,i) => (rs.filterNot(_ == r), i))
-      purge(next, acc :+ (r -> ix))
-    case Nil =>
-      acc.sortBy(_._2)
-  }
-
-  val departureRules =
-    purge(rulesByLengthAndLabel).filter(_._1.label.startsWith("departure"))
-
-  val departureFields =
-    departureRules.map((_,i) => ticket(i).toLong)
-
-  println(s"Answer part 2: ${departureFields.product} [${System.currentTimeMillis - start1}ms]")
+  val answer2 = solve2(rules, mine, nearby)
+  println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
