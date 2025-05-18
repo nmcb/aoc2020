@@ -5,7 +5,7 @@ lazy val root =
       , name         := "aoc-2024"
       , version      := "0.1.0"
       , libraryDependencies ++= Seq(
-        ("org.scala-graph" %  "graph-core" % "2.0.2").cross(CrossVersion.for3Use2_13),
+        ("org.scala-graph" %  "graph-core" % "2.0.3").cross(CrossVersion.for3Use2_13),
         ("org.scala-graph" %  "graph-dot"  % "2.0.0").cross(CrossVersion.for3Use2_13),
 
         "org.scala-lang.modules" %% "scala-parallel-collections" % "1.2.0",
