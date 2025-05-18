@@ -1,116 +1,43 @@
-import scala.io._
-import scala.collection._
+import scala.io.*
 
 object Day17 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  type Space = Map[Int,Map[Int,Map[Int,Set[Int]]]]
+  case class Cube(x: Int, y: Int, z: Int, w: Int):
+    infix def +(that: Cube): Cube = Cube(x + that.x, y + that.y, z + that.z, w + that.w)
 
-  case class Pocket(space: Space) {
+    def neighbours(offsets: Set[Cube]): Set[Cube] = offsets.map(+)
 
-    def maxX: Int = space.keys.max
-    def minX: Int = space.keys.min
-    def maxY: Int = space(0).keys.max
-    def minY: Int = space(0).keys.min
-    def maxZ: Int = space(0)(0).keys.max
-    def minZ: Int = space(0)(0).keys.min
-    def maxW: Int = space(0)(0)(0).max
-    def minW: Int = space(0)(0)(0).min
+  val points: Set[Cube] =
+    val lines = Source.fromResource(s"input$day.txt").getLines.toVector
+    val sizeX = lines.head.size
+    val sizeY = lines.size
+    val cubes = for x <- 0 until sizeX; y <- 0 until sizeY if lines(y)(x) == '#' yield Cube(x,y,0,0)
+    cubes.toSet
 
-    def active(x: Int, y: Int, z: Int, w: Int): Boolean =
-      space(x)(y)(z).contains(w)
 
-    def inactive(x: Int, y: Int, z: Int, w: Int): Boolean =
-      !active(x,y,z,w)
+  def step(offsets: Set[Cube])(grid: Set[Cube]): Set[Cube] =
 
-    def countNeighbours(x: Int, y: Int, z: Int, w: Int): Int = {
-      var count = 0
-      for (xi <- x-1 to x+1) {
-        for (yi <- y-1 to y+1) {
-          for (zi <- z-1 to z+1) {
-            for (wi <- w-1 to w+1) {
-              if (active(xi,yi,zi,wi) && !(xi==x && yi==y && zi==z && wi==w)) count += 1
-      }}}}
-      count
-    }
+    def rule(cube: Cube): Boolean =
+      val active = grid.contains(cube)
+      val count  = cube.neighbours(offsets).count(grid.contains)
+      count == 3 || (active && count == 4)
 
-    def next: Pocket = {
-      var xs = Map[Int,Map[Int,Map[Int,Set[Int]]]]()
-      for (x <- minX-1 to maxX+1) {
-        var ys = Map[Int,Map[Int,Set[Int]]]()
-        for (y <- minY-1 to maxY+1) {
-          var zs = Map[Int,Set[Int]]()
-          for (z <- minZ-1 to maxZ+1) {
-            var ws = Set[Int]()
-            for (w <- minW-1 to maxW+1) {
-              val neighbours = countNeighbours(x,y,z,w)
-              if (inactive(x,y,z,w) && (neighbours == 3)) {
-                ws = ws ++ Set(w)
-                zs = zs ++ Map(z -> ws)
-                ys = ys ++ Map(y -> zs)
-                xs = xs ++ Map(x -> ys)
-              }
-              else if (active(x,y,z,w) && (neighbours == 2 || neighbours == 3)) {
-                ws = ws ++ Set(w)
-                zs = zs ++ Map(z -> ws)
-                ys = ys ++ Map(y -> zs)
-                xs = xs ++ Map(x -> ys)
-              }
-      }}}}
-      Pocket(xs)
-    }
+    grid.flatMap(cube => cube.neighbours(offsets)).filter(rule)
 
-    def size: Int =
-      space.foldLeft(0) {
-        case (a1,(_,ys)) =>
-          a1 + ys.foldLeft(0) {
-            case (a2,(_,zs)) =>
-              a2 + ys.foldLeft(0) {
-                case (a3,(_,ws)) =>
-                  a3 + ws.size
-              }
-          }
-      }
-  }
-
-  val pocket = {
-    val input =
-      Source
-        .fromResource(s"input$day.txt")
-        .getLines
-        .zipWithIndex
-        .foldLeft(Map[Int,Map[Int,Map[Int,Set[Int]]]]()) {
-          case (xs,(ln,x)) =>
-            xs ++ Map(x -> ln.zipWithIndex
-              .foldLeft(Map[Int,Map[Int,Set[Int]]]()) {
-                case (ys,(c,y)) =>
-                  if (c == '#') then {
-                    ys ++ Map(y -> Map(0 -> Set(0)))
-                  } else {
-                    ys
-                  }
-              }
-            )
-        }
-
-    Pocket(input)
-  }
+  def solve1(points: Set[Cube]): Int =
+    val offsets = Seq.tabulate(3,3,3)((x,y,z) => Cube(x - 1, y - 1, z - 1, 0)).flatten.flatten.toSet
+    Iterator.iterate(points)(step(offsets)).drop(6).next.size
 
   val start1 = System.currentTimeMillis
+  val answer1 = solve1(points)
+  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  val p1 = pocket.next
-  println(s"1 [${System.currentTimeMillis - start1}ms]")
-  val p2 = p1.next
-  println(s"2 [${System.currentTimeMillis - start1}ms]")
-  val p3 = p2.next
-  println(s"3 [${System.currentTimeMillis - start1}ms]")
-  val p4 = p3.next
-  println(s"4 [${System.currentTimeMillis - start1}ms]")
-  val p5 = p4.next
-  println(s"5 [${System.currentTimeMillis - start1}ms]")
-  val p6 = p5.next
-  println(s"6 [${System.currentTimeMillis - start1}ms]")
+  def solve2(points: Set[Cube]): Int =
+    val directions = Seq.tabulate(3,3,3,3)((x,y,z,w) => Cube(x - 1, y - 1, z - 1, w - 1)).flatten.flatten.flatten.toSet
+    Iterator.iterate(points)(step(directions)).drop(6).next.size
 
-  // part 2 was hacked by just adding the w-dimension, the solution was fast enough...
-  println(s"Answer part 2: ${p6.size} [${System.currentTimeMillis - start1}ms]")
+  val start2 = System.currentTimeMillis
+  val answer2 = solve2(points)
+  println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
