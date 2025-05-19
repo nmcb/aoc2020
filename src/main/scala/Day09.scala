@@ -1,6 +1,6 @@
-import scala.io._
+import scala.io.*
 import scala.annotation.tailrec
-import scala.util.control.Breaks._
+import scala.util.control.Breaks.*
 
 object Day09 extends App:
 
@@ -16,7 +16,8 @@ object Day09 extends App:
   val (preamble, inbound) = input.splitAt(25)
 
   def solve1(preamble: Vector[Long], inbound: Vector[Long]): Long =
-    @tailrec def go(todo: Vector[Long], prem: Vector[Long] = preamble): Long =
+    @tailrec
+    def go(todo: Vector[Long], prem: Vector[Long] = preamble): Long =
       todo match
         case test +: rest =>
           if prem.combinations(2).map(_.sum).contains(test) then

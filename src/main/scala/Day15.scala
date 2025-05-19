@@ -1,5 +1,4 @@
-import scala.annotation._
-import scala.collection._
+import scala.collection.*
 
 object Day15 extends App:
 

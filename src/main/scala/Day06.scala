@@ -1,4 +1,4 @@
-import scala.io._
+import scala.io.*
 
 object Day06 extends App:
 

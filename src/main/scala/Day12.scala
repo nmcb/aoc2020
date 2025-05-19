@@ -1,7 +1,5 @@
-import scala.io._
-import scala.annotation.tailrec
-import scala.util.control.Breaks._
-import scala.collection._
+import scala.io.*
+import scala.annotation.*
 
 object Day12 extends App:
 
@@ -16,7 +14,8 @@ object Day12 extends App:
 
   case class Ship(x: Int = 0, y: Int = 0, face: Char = 'E'):
 
-    @tailrec private final def turn(current: Char, direction: Char, by: Int): Char =
+    @tailrec
+    private final def turn(current: Char, direction: Char, by: Int): Char =
       if (by == 0) current else (current,direction) match
         case ('N','R') => turn('E', direction, by - 90)
         case ('E','R') => turn('S', direction, by - 90)

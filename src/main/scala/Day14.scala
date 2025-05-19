@@ -1,8 +1,4 @@
-import scala.io._
-import scala.annotation._
-import scala.util.control.Breaks._
-import scala.util._
-import scala.collection._
+import scala.io.*
 
 object Day14 extends App:
 

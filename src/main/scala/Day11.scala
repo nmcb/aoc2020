@@ -1,7 +1,5 @@
-import scala.io._
+import scala.io.*
 import scala.annotation.tailrec
-import scala.util.control.Breaks._
-import scala.collection._
 
 object Day11 extends App:
 
@@ -32,7 +30,6 @@ object Day11 extends App:
       List(NW,N,NE,E,SE,S,SW,W).flatten.count(_ == '#')
 
     def count2(x: Int, y: Int): Int =
-
       @tailrec
       def find(x: Int, y: Int, dx: Int, dy: Int): Option[Char] =
         if !within(x, y) then

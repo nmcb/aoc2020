@@ -1,7 +1,6 @@
 import scala.io.*
 import scala.annotation.*
 import scala.util.*
-import scala.collection.*
 
 object Day13 extends App:
 
@@ -24,7 +23,8 @@ object Day13 extends App:
   def depart(at: Long)(bus: Long): Boolean = at % bus == 0
 
   def solve1(schedule: List[(Long,Int)], start: Long): Long =
-    @tailrec def go(time: Long): Long =
+    @tailrec
+    def go(time: Long): Long =
       schedule.toMap.keys.find(depart(time)) match
         case None      => go(time + 1)
         case Some(bus) => (time - start) * bus
