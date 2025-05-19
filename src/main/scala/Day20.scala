@@ -1,230 +1,146 @@
-import scala.io._
-import scala.annotation._
+import scala.annotation.tailrec
+import scala.io.Source
 
 object Day20 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  val Header = "Tile\\s(\\d+):".r
+  val monster =
+    """                  #
+      |#    ##    ##    ###
+      | #  #  #  #  #  #
+      |"""
+      .stripMargin
+      .split("\n")
+      .toSeq
+      .zipWithIndex
+      .flatMap: (line,y) =>
+        line
+          .zipWithIndex
+          .collect:
+            case (c,x)if c == '#' => (x,y)
 
-  val inputs: List[Tile] =
+  case class Pos(x: Int, y: Int):
+    infix def plus(dx: Int, dy: Int): Pos = Pos(x + dx, y + dy)
+
+  /** note that images are squares */
+  case class Image(size: Int, pixels: Map[Pos, Char]):
+    val top    = (0 until size).map(x => pixels(Pos(x, 0)))
+    val left   = (0 until size).map(y => pixels(Pos(0, y)))
+    val bottom = (0 until size).map(x => pixels(Pos(x, size - 1)))
+    val right  = (0 until size).map(y => pixels(Pos(size - 1, y)))
+
+    private def rotateCW: Image =
+      Image(size, pixels.map((pos, pixel) => Pos(size - pos.y - 1, pos.x) -> pixel))
+
+    private def flipH: Image =
+      Image(size, pixels.map((pos, pixel) => Pos(size - pos.x - 1, pos.y) -> pixel))
+
+    private def flipV: Image =
+      Image(size, pixels.map((pos, pixel) => Pos(pos.x, size - pos.y - 1) -> pixel))
+
+    def permutations: Vector[Image] =
+      import Iterator.*
+      val all =
+        for
+          rotate <- 0 to 3
+          fliph  <- 0 to 1
+          flipv  <- 0 to 1
+        yield
+          val rotated = iterate(this)(_.rotateCW).drop(rotate).next
+          val flipped = iterate(rotated)(_.flipH).drop(fliph).next
+          iterate(flipped)(_.flipV).drop(flipv).next
+      all.distinct.toVector
+
+  case class Tile(id: Long, image: Image):
+    export image.{top, left, bottom, right}
+
+    val edges =
+      val forward   = Set(top, left, bottom, right)
+      val backwards = forward.map(_.reverse)
+      forward ++ backwards
+
+    def adjacentTo(other: Tile): Boolean =
+      other.edges.intersect(edges).nonEmpty
+
+    def permutations: Seq[Tile] =
+      image.permutations.map(Tile(id, _))
+
+  def corners(tiles: Vector[Tile]): Vector[Tile] =
+    val occurrences = tiles.flatMap(_.edges).groupMapReduce(identity)(_ => 1)(_ + _)
+    val categories  = tiles.groupBy(tile => tile.edges.count(edge => occurrences(edge) == 1))
+    categories(4)
+
+  val tiles: Vector[Tile] =
     Source
-      .fromResource(s"input$day-example1.txt")
-      .getLines
-      .map(_.trim)
-      .filter(_.nonEmpty)
-      .toList
-      .foldLeft(List.empty[(Long,List[String])]) {
-        case (acc, Header(d)) => // -> Tile.id
-          acc :+ (d.toLong -> List.empty[String])
-        case (acc, line) => // -> Tile.img :+ line
-          acc.init :+ (acc.last._1 -> (acc.last._2 :+ line))
-      }
-      .map((id,img) => Piece(id,img))
-      .toList
+      .fromResource(s"input$day.txt")
+      .mkString
+      .trim.split("\n\n").toSeq
+      .map(_.split("\n").map(_.trim))
+      .map: tile =>
+        val id     = tile.head.slice(5, 9).toLong
+        val data   = tile.drop(1)
+        val pixels = for y <- 0 to 9; x <- 0 to 9 yield Pos(x, y) -> data(y)(x)
+        Tile(id, Image(10, pixels.toMap))
+      .toVector
 
-  def answer1(input: List[Tile]): Long = {
-
-    def ids: List[Long] =
-      input.map(_.id)
-  
-    def tile(id: Long): Tile =
-      input.find(_.id == id).get
-  
-    val fits: List[(Long,Long,Set[String])] = 
-      (for { 
-        s <- input
-        t <- input if s != t && s.fitsOn(t).nonEmpty
-      } yield (s.id, t.id, s.fitsOn(t)))
-  
-    val corners: List[Corner] =
-      input
-        .foldLeft(List.empty[Corner])((acc,tile) =>
-          if (fits.count(_._1 == tile.id) != 2) then acc else {
-            val Seq(fit1,fit2) = fits.filter(_._1 == tile.id).map(_._3.head).toSeq
-            acc :+ Corner(tile.id, tile.img, fit1, fit2)
-          })
-
-    corners.map(_.id).product
-  }
+  def solve1(tiles: Vector[Tile]): Long =
+    corners(tiles).map(_.id).product
 
   val start1 = System.currentTimeMillis
-  println(s"Answer part 1: \n${answer1(inputs)} [${System.currentTimeMillis - start1}ms]")
+  val answer1 = solve1(tiles)
+  println(s"Answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
+  assert(answer1 == 20913499394191L)
 
-  sealed trait Tile {
+  def unscrambleTiles(tiles: Vector[Tile]): Map[Pos, Tile] =
+    val size = math.sqrt(tiles.size).toInt
+    val positions = for x <- 0 until size; y <- 0 until size yield Pos(x, y)
+    val corner = corners(tiles).head.permutations
+    val occurrences = tiles.flatMap(_.edges).groupMapReduce(identity)(_ => 1)(_ + _)
 
-    val id:  Long
-    val img: List[String]
-    val oriented: Option[Orientation]
-  
-    val N: String = img.head
-    val E: String = img.foldLeft("")((acc,row) => acc + row.last)
-    val S: String = img.last
-    val W: String = img.foldLeft("")((acc,col) => acc + col.head)
+    @tailrec
+    def go(remaining: Vector[Tile], positions: Vector[Pos], ordered: Map[Pos, Tile]): Map[Pos, Tile] =
+      if positions.isEmpty then
+        ordered
+      else
+        val tile = positions.head match
+          case Pos(0, 0) => corner.filter(tile => occurrences(tile.top) == 1 && occurrences(tile.left) == 1).head
+          case Pos(0, y) => remaining.filter(tile => tile.top == ordered(Pos(0, y - 1)).bottom).head
+          case Pos(x, y) => remaining.filter(tile => tile.left == ordered(Pos(x - 1, y)).right).head
+        go(remaining.filterNot(_.id == tile.id), positions.tail, ordered.updated(positions.head, tile))
 
-    def fits: Set[String] =
-      Set(N, N.reverse, E, E.reverse, S, S.reverse, W, W.reverse)
+    go(tiles.flatMap(_.permutations), positions.toVector, Map.empty)
 
-    def fitsOn(that: Tile): Set[String] =
-      fits intersect that.fits
+  def assembleImage(unscrambled: Map[Pos, Tile]): Image =
+    val size = 8 * math.sqrt(unscrambled.size).toInt
+    val pixels = for
+      x <- 0 until size
+      y <- 0 until size
+    yield
+      Pos(x, y) -> unscrambled(Pos(x / 8, y / 8)).image.pixels(Pos(1 + x % 8, 1 + y % 8))
 
-    def mkString: String =
-      s"""Tile $id:
-          |$N - n
-          |$E - e
-          |$S - s
-          |$W - w
-          |----------
-          |${img.mkString("\n")}
-          """.stripMargin
-  }
+    Image(size, pixels.toMap)
 
-  case class Piece( val id: Long
-                  , val img: List[String]
-                  , oriented: Option[Orientation] = None
-                  )
-    extends Tile
-  {
-    def flip: Tile =
-      copy(img = img.map(_.reverse))
-  }
+  def findMonsters(image: Image): Vector[Int] =
+    for
+      candidate <- image.permutations
+    yield
+      val matches = for
+        x <- 0 until image.size - 20 // monster dimensions are 20 x 3
+        y <- 0 until image.size - 3
+        if monster.map(Pos(x, y).plus).forall(pos => candidate.pixels(pos) == '#')
+      yield (x, y)
+      val monsters = matches.map(Pos(_, _)).flatMap(pos => monster.map(pos.plus)).toSet
+      candidate.pixels.keys.count(pos => candidate.pixels(pos) == '#' && !monsters.contains(pos))
 
-  case class Corner( override val id: Long
-                   , override val img: List[String]
-                   , fit1: String
-                   , fit2: String
-                   , oriented: Option[Orientation] = None
-                   )
-    extends Tile
-  {
-    import Orientation._
+  def solve2(tiles: Vector[Tile]): Long =
+    val unscrambled   = unscrambleTiles(tiles)
+    val completeImage = assembleImage(unscrambled)
+    val roughness     = findMonsters(completeImage)
+    roughness.min
 
-    override def fits: Set[String] =
-      Set(fit1, fit2)
+  val start2 = System.currentTimeMillis
+  val answer2 = solve2(tiles)
+  println(s"Answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
+  assert(answer2 == 2209)
 
-    def orient: Corner = {
-      assert(oriented == None)
-      // println(s"orienting ... \n$mkString")
-      def fit1sided(dir: String): Boolean    = dir == fit1 || dir == fit1.reverse
-      def fit2sided(dir: String): Boolean    = dir == fit2 || dir == fit2.reverse
-      def fit1reversed(fit: String): Boolean = fit == fit1.reverse
-      def fit2reversed(fit: String): Boolean = fit == fit2.reverse
-      (fit1sided(N), fit1sided(S), fit2sided(E), fit2sided(W)) match {
-        
-        case (  true, false,  true, false) if fit1reversed(N) && fit2reversed(E) =>
-          copy(img = img.reverse.map(_.reverse), fit1 = fit1.reverse, fit2 = fit2.reverse, oriented = Some(NE))
-        case (  true, false,  true, false) if fit1reversed(N) =>
-          copy(img = img.map(_.reverse), fit1 = fit1.reverse, oriented = Some(SW))
-        case (  true, false,  true, false) if fit2reversed(E) =>
-          copy(img = img.reverse, fit2 = fit2.reverse, oriented = Some(NW))
-        case (  true, false,  true, false) =>
-          copy(oriented = Some(SW))
-
-        case (  true, false, false,  true) if fit1reversed(N) && fit2reversed(W) =>
-          copy(img = img.reverse.map(_.reverse), fit1 = fit1.reverse, fit2 = fit2.reverse, oriented = Some(NW))
-        case (  true, false, false,  true) if fit1reversed(N) =>
-          copy(img = img.map(_.reverse), fit1 = fit1.reverse, oriented = Some(SE))
-        case (  true, false, false,  true) if fit2reversed(W) =>
-          copy(img = img.reverse, fit2 = fit2.reverse, oriented = Some(NE))
-        case (  true, false, false,  true) =>
-          copy(oriented = Some(SE))
-
-        case ( false,  true,  true, false) if fit1reversed(N) && fit2reversed(E) =>
-          copy(img = img.reverse.map(_.reverse), fit1 = fit1.reverse, fit2 = fit2.reverse, oriented = Some(SE))
-        case ( false,  true,  true, false) if fit1reversed(N) =>
-          copy(img = img.map(_.reverse), fit1 = fit1.reverse, oriented = Some(NE))
-        case ( false,  true,  true, false) if fit2reversed(E) =>
-          copy(img = img.reverse, fit2 = fit2.reverse, oriented = Some(SW))
-        case ( false,  true,  true, false) =>
-          copy(oriented = Some(NW))
-
-        case ( false,  true, false,  true) if fit1reversed(N) && fit2reversed(W) =>
-          copy(img = img.reverse.map(_.reverse), fit1 = fit1.reverse, fit2 = fit2.reverse, oriented = Some(SW))
-        case ( false,  true, false,  true) if fit1reversed(N) =>
-          copy(img = img.map(_.reverse), fit1 = fit1.reverse, oriented = Some(NW))
-        case ( false,  true, false,  true) if fit2reversed(W) =>
-          copy(img = img.reverse, fit2 = fit2.reverse, oriented = Some(SE))
-        case ( false,  true, false,  true) =>
-          copy(oriented = Some(NE))
-
-        case ( false, false, false, false) =>
-          copy(fit1 = fit2, fit2 = fit1).orient
-
-        case err =>
-          sys.error(s"orienting $err: $mkString")
-      }
-    }
-
-    override def mkString: String =
-      s"""Tile $id:
-         |n=$N
-         |e=$E
-         |s=$S
-         |w=$W
-         |fit1=$fit1
-         |fit2=$fit2
-         |----------
-         |oriented=${oriented.map(_.toString)getOrElse("<no>")}
-         |----------
-         |${img.mkString("\n")}
-         """.stripMargin
-  }
-
-  enum Orientation {
-    case NW
-    case NE
-    case SE
-    case SW
-  } 
-
-  case class Cross( placed: Map[Orientation,Tile] = Map.empty
-                  , on: Option[String] = Option.empty
-                  , os: Option[String] = Option.empty
-                  , oe: Option[String] = Option.empty
-                  , ow: Option[String] = Option.empty
-                  )
-  {
-    import Orientation._
-
-    def fitsNW(t: Tile): Boolean = fits(NW)(t)
-    def fitsNE(t: Tile): Boolean = fits(NE)(t)
-    def fitsSW(t: Tile): Boolean = fits(SW)(t)
-    def fitsSE(t: Tile): Boolean = fits(SE)(t)
-
-    def fits(o: Orientation)(t: Tile): Boolean =
-      o match {
-        case NW => Some(t.S) == oe && Some(t.E) == on
-        case NE => Some(t.S) == ow && Some(t.E) == on
-        case SW => Some(t.N) == oe && Some(t.W) == os
-        case SE => Some(t.N) == ow && Some(t.W) == os
-      }
-
-    def mkString: String =
-      s"""Cross ${placed.map((d,t) => s"$d=${t.id}").mkString(", ")}:
-         |on=${on.map(_.toString).getOrElse("<free>")}
-         |os=${os.map(_.toString).getOrElse("<free>")}
-         |oe=${oe.map(_.toString).getOrElse("<free>")}
-         |ow=${ow.map(_.toString).getOrElse("<free>")}
-         |""".stripMargin
-  }
-
-  object Cross {
-    import Orientation._
-    def from(c: Corner): Cross =
-      c.orient.oriented match {
-        case Some(NW) => Cross(placed = Map(NW -> c), on = Some(c.E), ow = Some(c.S))
-        case Some(NE) => Cross(placed = Map(NE -> c), on = Some(c.W), oe = Some(c.S))
-        case Some(SW) => Cross(placed = Map(SW -> c), os = Some(c.E), ow = Some(c.N))
-        case Some(SE) => Cross(placed = Map(SE -> c), os = Some(c.W), oe = Some(c.N))
-        case _ => sys.error(s"from corner c=${c.mkString}") 
-      }
-  }
-
-  def solve( input: List[Tile]     = inputs
-           , acc: List[List[Tile]] = List.empty
-           ): List[List[Tile]] = {
-    import math._
-    assert(sqrt(input.length) == floor(sqrt(input.length)))
-
-    ???
-  }
