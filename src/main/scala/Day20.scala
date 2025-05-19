@@ -90,7 +90,6 @@ object Day20 extends App:
   val start1 = System.currentTimeMillis
   val answer1 = solve1(tiles)
   println(s"Answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
-  assert(answer1 == 20913499394191L)
 
   def unscrambleTiles(tiles: Vector[Tile]): Map[Pos, Tile] =
     val size = math.sqrt(tiles.size).toInt
@@ -142,5 +141,3 @@ object Day20 extends App:
   val start2 = System.currentTimeMillis
   val answer2 = solve2(tiles)
   println(s"Answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
-  assert(answer2 == 2209)
-

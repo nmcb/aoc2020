@@ -1,45 +1,77 @@
-import scala.io._
+import scala.annotation.tailrec
+import scala.io.*
 
 object Day21 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  def partTwo = {
-    val x =
-      Source
-        .fromResource(s"input$day.txt").getLines
-        .foldLeft(Map.empty[String, Set[String]]) { case (acc, line) =>
-      val split = line.split(" ").toList
-      val ingredients = split.takeWhile(_ != "(contains")
-      val allergenz = split.drop(ingredients.length + 1).map(_.replace(")", "").replace(",", ""))
-      val map = allergenz.map { all =>
-        if (acc.contains(all)) {
-          (all, acc(all).intersect(ingredients.toSet))
-        } else {
-          (all, ingredients.toSet)
-        }
-      }.toMap
-      acc ++ map
-    }
-    var toxic = Map.empty[String, String]
-    var y = x
-    var i = 0
-    while(!y.isEmpty) {
-      println(y.toList.head)
-      i = if (i >= y.size) 0 else i
-      val (k, vals) = y.toList(i)
-      if (vals.size == 1 && !toxic.contains(k)) {
-        toxic = toxic.updated(k, vals.head)
-        println(s"Removing $k from the list")
-        y = y - k
-        for (k <- y) {
-          y = y.updated(k._1, y(k._1) - vals.head)
-        }
-      }
-      i += 1
-    }
-    println(toxic.toList.sortBy(_._1).map(_._2).mkString(","))
-  }
+  type Ingredient  = String
+  type Allergen    = String
+  type Ingredients = Set[Ingredient]
+  type Allergens   = Set[Allergen]
+  type Input       = Vector[(Ingredients, Allergens)]
 
-  val start2 = System.currentTimeMillis
-  println(s"Answer part 2: ${partTwo} [${System.currentTimeMillis - start2}ms]")
+  val regex = "(.+) \\(contains (.+)\\)".r
+
+  def partition(input: Input): (Map[Ingredient,Allergens], Map[Allergen,Ingredients]) =
+
+    val candidates =
+      input.foldLeft(Map.empty[Ingredient,Allergens]):
+        case (candidates, (ingredients, allergens)) =>
+          ingredients.foldLeft(candidates): (candidates, ingredient) =>
+            candidates.updated(ingredient, candidates.getOrElse(ingredient, Set.empty) ++ allergens)
+
+    val reduced =
+      candidates.map: (candidate, possible) =>
+        val next = input.foldLeft(possible):
+          case (possible, (ingredients, allergens)) =>
+            if ingredients.contains(candidate) then possible else possible -- allergens
+        (candidate, next)
+
+
+    reduced.partition((_, possible) => possible.isEmpty)
+
+  def findIngredient(risky: Map[Ingredient,Allergens]): Ingredient =
+
+    extension (t: (String,String))
+      def ingredient: String = t._1
+      def allergen: String   = t._2
+
+    @tailrec
+    def go(remaining: Map[Ingredient,Allergens], known: Vector[(Ingredient,Allergen)]): Vector[(Ingredient,Allergen)] =
+      if remaining.isEmpty then
+        known
+      else
+        val (ingredient, allergen) = remaining.find((_, allergens) => allergens.size == 1).get
+        val todo  = remaining.removed(ingredient).view.mapValues(_ - allergen.head).toMap
+        val found = (ingredient, allergen.head)
+        go(todo, found +: known)
+
+    go(risky, Vector.empty).sortBy(_.allergen).map(_.ingredient).mkString(",")
+
+  val input: Input =
+    Source
+      .fromResource(s"input$day.txt")
+      .getLines()
+      .toVector
+      .map:
+        case regex(ingredients, allergens) =>
+          (ingredients.split(" ").toSet, allergens.split(", ").toSet)
+
+
+  def part1(input: Input): Int =
+    val (inert,risky) = partition(input)
+    input.map((ingredients,_) => inert.keySet.intersect(ingredients).size).sum
+
+  val start1  = System.currentTimeMillis
+  val answer1 = part1(input)
+  println(s"Answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
+
+  def part2(input: Input): String =
+    val (inert, risky) = partition(input)
+    findIngredient(risky)
+
+  val start2  = System.currentTimeMillis
+  val answer2 = part2(input)
+  println(s"Answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
+
