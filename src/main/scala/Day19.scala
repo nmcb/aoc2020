@@ -66,32 +66,28 @@ object Day19 extends App:
     (rules, messages)
 
 
-  def solve1(rules: Rules, messages: Messages): Int =
+  def solve(rules: Rules, messages: Messages): Int =
     messages.count(message => rules(0).prefix(message)(using rules).contains(message.length))
 
   val start1  = System.currentTimeMillis
-  val answer1 = solve1(rules, messages)
+  val answer1 = solve(rules, messages)
   println(s"Answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
 
   case class RuleZero(size: Int) extends Rule:
     override def prefix(line: String)(using rules: Rules): Option[Int] =
-      var index = line.length - size
+      var index  = line.length - size
       var length = 3 * size
-      var found = false
+      var found  = false
       while length <= line.length && !found do
-        val left = line.take(index).grouped(size).forall(group => rules(42).prefix(group).contains(size))
+        val left  = line.take(index).grouped(size).forall(group => rules(42).prefix(group).contains(size))
         val right = line.drop(index).grouped(size).forall(group => rules(31).prefix(group).contains(size))
-        index -= size
+        index  -= size
         length += 2 * size
-        found = left && right
+        found   = left && right
       Option.when(found)(line.length)
 
-  def solve2(rules: Rules, messages: Messages, size: Int = 8): Int =
-    val patched = rules.updated(0, RuleZero(size))
-    messages.count(message => patched(0).prefix(message)(using patched).contains(message.length))
-
   val start2  = System.currentTimeMillis
-  val answer2 = solve2(rules, messages)
+  val answer2 = solve(rules.updated(0, RuleZero(8)), messages)
   println(s"Answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
 
