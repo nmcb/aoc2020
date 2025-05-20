@@ -1,99 +1,60 @@
-import scala.annotation._
+import scala.annotation.tailrec
 
 object Day23 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  case class Round(ring: List[Int], move: Int = 1) {
-    val size = 9
-    assert(ring.length == size)
+  /** a singe linked, updatable list of cups */
+  case class Cup(value: Int, var next: Cup = null)
 
-    val current: Int =
-      ring(0)
+  def play(digits: Vector[Int], max: Int): Cup =
 
-    def peek(idx: Int): Int =
-      ring(idx % 9)
+    import Iterator.*
+    val cups = digits
+        .scanRight(0 -> Cup(0)):
+          case (current, (value, next)) => current -> Cup(current, next)
+        .toMap
+    cups(digits.last).next = cups(digits.head)
 
-    def find(i: Int): Int =
-      ring.indexOf(i)
+    @tailrec
+    def go(cup: Cup, step: Int): Cup =
+      if step == max then
+        cups(1)
+      else
+        val a = cup.next
+        val b = a.next
+        val c = b.next
+        val picked = Set(cup.value, a.value, b.value, c.value)
+        def next(n: Int) = if n == 1 then digits.size else n - 1
+        val target = iterate(cup.value)(next).dropWhile(picked.contains).next
 
-    val pickup: List[Int] = 
-      ring.drop(1).take(3)
+        cup.next = c.next
+        c.next   = cups(target).next
+        cups(target).next = a
+        go(cup.next, step + 1)
+    go(cups(digits.head), 0)
 
-    val destination: Int = {
-      def loop(n: Int): Int =
-        if (n == 0)
-          loop(size)
-        else if (!pickup.contains(n))
-           n
-        else
-          loop(n - 1)
-      loop(current - 1)
-    }
+  def solve1(digits: Vector[Int]): Long =
+    val start = play(digits, 100)
 
-    def next: Round = {
-      def cycle(i: Int): Round = {
-        val test = ring.drop(4) :+ current
-        println(s"test=$test")
-        val ncur = test.head
-        println(s"ncur=$ncur")               
-        val res =
-          if (ncur == destination)
-            val tail = test.drop(1)
-            println(s"tail=$tail")
-            ncur +: pickup :++ tail
-          else
-            val init = test.drop(1).takeWhile(_ != i)
-            println(s"init=$init")
-            val tail = test.drop(1).dropWhile(_ != i).drop(1)
-            println(s"tail=$tail")
-            ncur +: init :+ destination :++ pickup :++ tail
-        println(s"res=$res")
-        Round(res,move+1)
-      }
-      cycle(destination)
-    }
+    @tailrec
+    def go(cup: Cup, seq: Vector[Int]): Long =
+      if cup == start then seq.mkString.toLong else go(cup.next, seq :+ cup.value)
 
-    override def toString: String =
-      s"""-- move $move --
-         |cups: $ring
-         |current: $current
-         |pick up: [${pickup.mkString(" ")}]
-         |destination: $destination
-      """
-  }
+    go(start.next, Vector.empty)
 
-  object Round {
-    def apply(digits: String): Round =
-      Round(digits.map(_.toString.toInt).toList)
-  }
-  
+  def solve2(digits: Vector[Int]): Long =
+    val seq = digits ++ (10 to 1000000)
+    val cup = play(seq, 10000000)
+    val (a, b) = (cup.next.value, cup.next.next.value)
+    a.toLong * b.toLong
 
-  val start1 = System.currentTimeMillis
+  val digits = "193467258".trim.map(_.asDigit).toVector
 
-  val answer1: Unit = {
-    def play(round: Round): Unit =
-      if (round.move <= 100)
-        println(s"$round")
-        play(round.next)
-      else 
-        println(s"$round")
-    // play(Round("389125467")) // CRAB
-    play(Round("193467258")) // MINE
-  }
+  val start1  = System.currentTimeMillis
+  val answer1 = solve1(digits)
+  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  println(s"Answer part 2: ${answer1} [${System.currentTimeMillis - start1}ms]")
-
-
-  val answer2: Unit = {
-    def play(round: Round): Unit =
-      if (round.move <= 100)
-        println(s"$round")
-        play(round.next)
-      else 
-        println(s"$round")
-    // play(Round("389125467")) // CRAB
-    play(Round("193467258")) // MINE
-  }
-
-  // 1000000 -> ???
+  val start2  = System.currentTimeMillis
+  val answer2 = solve2(digits)
+  println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")

@@ -71,7 +71,7 @@ object Day19 extends App:
 
   val start1  = System.currentTimeMillis
   val answer1 = solve(rules, messages)
-  println(s"Answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
 
   case class RuleZero(size: Int) extends Rule:
@@ -89,5 +89,5 @@ object Day19 extends App:
 
   val start2  = System.currentTimeMillis
   val answer2 = solve(rules.updated(0, RuleZero(8)), messages)
-  println(s"Answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
+  println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
 
