@@ -1,145 +1,73 @@
+import Day22.Winner.Player1
+
 import scala.annotation.tailrec
+import scala.io.Source
 
 object Day22 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  type Deck = List[Int]
-  val  Deck = List
+  enum Winner(val deck: Vector[Int]):
+    case Player1(override val deck: Vector[Int]) extends Winner(deck)
+    case Player2(override val deck: Vector[Int]) extends Winner(deck)
 
-  case class Win(player1: Option[Deck] = None, player2: Option[Deck] = None) {
+    def score: Int =
 
-    def byPlayer1: Boolean =
-      player1.nonEmpty
+      extension (card: (Int, Int))
+        def value: Int     = card._1
+        def multplier: Int = card._2
 
-    def byPlayer2: Boolean =
-      player2.nonEmpty
-
-    def deck: Deck =
-      player1.getOrElse(player2.getOrElse(sys.error("no win")))
-
-    def score: Long =
-      deck
+      (deck :+ 0)
         .reverse
         .zipWithIndex
-        .map((n,i) => (n,i+1))
-        .foldRight(0L) { case ((nr,ix),ac) => (nr * ix) + ac }
-  }
+        .foldLeft(0)((score, card) => score + card.value * card.multplier)
 
-  object Win {
-    def empty: Win = Win()
-  }
+  import Winner.*
 
-  val example1: Deck =
-    Deck(9, 2, 6, 3,  1)
+  case class Game(deck1: Vector[Int], deck2: Vector[Int]):
 
-  val example2: Deck =
-    Deck(5, 8, 4, 7, 10)
+    def player1Wins: Game =
+      Game(deck1.tail ++ Seq(deck1.head, deck2.head), deck2.tail)
 
-  val input1: Deck =
-    Deck( 17, 19, 30, 45, 25, 48,  8,  6, 39, 36
-        , 28,  5, 47, 26, 46, 20, 18, 13,  7, 49
-        , 34, 23, 43, 22,  4
-        )
+    def player2Wins: Game =
+      Game(deck1.tail, deck2.tail ++ Seq(deck2.head, deck1.head))
 
-  val input2: Deck =
-    Deck( 44, 10, 27,  9, 14, 15, 24, 16,  3, 33
-        , 21, 29, 11, 38,  1, 31, 50, 41, 40, 32
-        , 42, 35, 37,  2, 12
-        )
+    @tailrec
+    final def combat: Winner =
+      if      deck2.isEmpty then Player1(deck1)
+      else if deck1.isEmpty then Player2(deck2)
+      else (if deck1.head > deck2.head then player1Wins else player2Wins).combat
 
-  val start1: Long =
-    System.currentTimeMillis
+    def recursiveCombat: Winner =
+      def go(round: Game, cache: Set[Game] = Set.empty): Winner =
+        round match
+          case Game(deck1, Vector()) => Player1(deck1)
+          case Game(Vector(), deck2) => Player2(deck2)
+          case Game(deck1, deck2)    =>
+            go( round = if cache.contains(round) then
+                          Game(deck1, Vector.empty)
+                        else if deck1.head > deck1.tail.size || deck2.head > deck2.tail.size then
+                          if deck1.head > deck2.head then round.player1Wins else round.player2Wins
+                        else
+                          val d1 = deck1.tail.take(deck1.head)
+                          val d2 = deck2.tail.take(deck2.head)
+                          go(Game(d1, d2)) match
+                            case Player1(_) => round.player1Wins
+                            case Player2(_) => round.player2Wins
+              , cache = cache + round)
+      go(this)
 
-  val answer1: Long = {
-    @tailrec def play(as: Deck, bs: Deck): Win = {
-      (as, bs) match {
-        case (a +: atail, b +: btail) =>
-          if (a > b)
-            play(atail :+ a :+ b, btail)
-          else
-            play(atail, btail :+ b :+ a)
+  val game: Game =
+    val input = Source.fromResource(s"input$day.txt").getLines.toVector
+    val index = input.indexOf("")
+    val deck1 = input.slice(1, index).map(_.toInt)
+    val deck2 = input.drop(index + 2).map(_.toInt)
+    Game(deck1, deck2)
 
-        case (_, Nil) => Win(player1 = Some(as))
-        case (Nil, _) => Win(player2 = Some(bs))
-        case _        => sys.error("both empty")
-      }
-    }
-    val result = play(input1, input2)
-    result.score
-  }
+  val start1  = System.currentTimeMillis
+  val answer1 = game.combat.score
+  println(s"Answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  println(s"Answer part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
-
-  /*
-  from collections import deque
-  from math import prod
-
-  with open('input') as f:
-  ls = [line.strip() for line in f.readlines()]
-
-  p1 = deque(map(int, ls[1:26]))
-  p2 = deque(map(int, ls[28:]))
-
-  def score(winner):
-    return sum(map(prod, enumerate(reversed(winner), 1)))
-  */
-
-  /*
-  def game(p1, p2):
-    seen = set()
-    while p1 and p2:
-        conf = (tuple(p1), tuple(p2))
-
-        if conf in seen:
-            return True, p1
-
-        seen.add(conf)
-        c1 = p1.popleft()
-        c2 = p2.popleft()
-
-        if len(p1) >= c1 and len(p2) >= c2:
-            p1_won, _ = game(deque(list(p1)[:c1]),
-                            deque(list(p2)[:c2]))
-        else:
-            p1_won = c1 > c2
-
-        if p1_won:
-            p1 += [c1, c2]
-        else:
-            p2 += [c2, c1]
-    return p1_won, p1 or p2
-
-  _, winner = game(deque(p1), deque(p2))
-  print(score(winner))
-  */
-
-  val start2: Long = System.currentTimeMillis
-
-  val answer2: Long = {
-    def play(as: Deck, bs: Deck, seen: Set[(Deck,Deck)] = Set.empty, round: Int = 1): Win = {
-      println(s"-- Round $round --")
-      println(s"Player 1's deck: $as")
-      println(s"Player 2's deck: $bs")
-      (as,bs) match {
-        case (a +: atail, b +: btail) =>
-          val current = (as,bs)
-          if (seen.contains(current))
-            Win(player1 = Some(as))
-          else {
-            if (as.length >= a && bs.length >= b)
-              play(as.take(a), bs.take(b), seen + current)
-            else if (a > b)
-              play(atail :+ a :+ b, btail, seen, round + 1)
-            else
-              Win(player2 = Some(btail :+ b :+ a))
-          }
-        case (_, Nil) => Win(player1 = Some(as))
-        case (Nil, _) => Win(player2 = Some(bs))
-        case _        => sys.error("both empty")
-      }
-    }
-    play(example1,example2).score
-  }
-
-  println(s"Answer part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
+  val start2  = System.currentTimeMillis
+  val answer2 = game.recursiveCombat.score
+  println(s"Answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
