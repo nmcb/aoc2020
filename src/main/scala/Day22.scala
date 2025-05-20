@@ -1,5 +1,3 @@
-import Day22.Winner.Player1
-
 import scala.annotation.tailrec
 import scala.io.Source
 
@@ -66,8 +64,8 @@ object Day22 extends App:
 
   val start1  = System.currentTimeMillis
   val answer1 = game.combat.score
-  println(s"Answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
   val start2  = System.currentTimeMillis
   val answer2 = game.recursiveCombat.score
-  println(s"Answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
+  println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")

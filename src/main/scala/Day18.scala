@@ -59,7 +59,7 @@ object Day18 extends App:
 
   val start1  = System.currentTimeMillis
   val answer1 = input.map(parse1).map(_.eval).sum
-  println(s"Answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
 
   // expr2   := lhs@term2 -> { '*' rhs@term2 }                       => Mul(lhs,rhs)
@@ -77,4 +77,4 @@ object Day18 extends App:
 
   val start2  = System.currentTimeMillis
   val answer2 = input.map(parse2).map(_.eval).sum
-  println(s"Answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
+  println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")

@@ -65,7 +65,7 @@ object Day21 extends App:
 
   val start1  = System.currentTimeMillis
   val answer1 = part1(input)
-  println(s"Answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
   def part2(input: Input): String =
     val (inert, risky) = partition(input)
@@ -73,5 +73,4 @@ object Day21 extends App:
 
   val start2  = System.currentTimeMillis
   val answer2 = part2(input)
-  println(s"Answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
-
+  println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
